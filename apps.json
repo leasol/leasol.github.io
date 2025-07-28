@@ -1,0 +1,54 @@
+{
+    "developer": "Lea Sol Bokobza",
+    "developer_google_play_id": "6683676916228216712",
+    "apps": [
+        {
+            "name": "Quiz: Celebs Game 2025",
+            "app_store_url": "https://apps.apple.com/app/id6477743652",
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.actorquiz",
+            "icon_url": "https://leasol.github.io/images/celebs_icon.png"
+        },
+        {
+            "name": "MindBlow: Solve Image Riddles",
+            "app_store_url": "https://apps.apple.com/app/id6472485066",
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.mindblow",
+            "icon_url": "https://leasol.github.io/images/mindblow_icon.png"
+        },
+        {
+            "name": "Quiz: What Country Am I From?",
+            "app_store_url": "https://apps.apple.com/app/id6747153287",
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.countryquiz",
+            "icon_url": "https://leasol.github.io/images/country_icon.png"
+        },
+        {
+            "name": "Quiz: Flags of Our World",
+            "app_store_url": "https://apps.apple.com/app/id6747153050",
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.flagsquiz",
+            "icon_url": "https://leasol.github.io/images/flags_icon.png"
+        },
+        {
+            "name": "Logo Quiz 2025",
+            "app_store_url": "https://apps.apple.com/app/id6745572091",
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.logoquiz",
+            "icon_url": "https://leasol.github.io/images/logoquiz_icon.png"
+        },
+        {
+            "name": "Quiz: Emoji Madness",
+            "app_store_url": "https://apps.apple.com/app/id6747152800",
+            "google_play_url": null,
+            "icon_url": "https://leasol.github.io/images/emoji_icon.png"
+        },
+        {
+            "name": "Quiz: Impossible Animal Hybrid",
+            "app_store_url": "https://apps.apple.com/app/id6748075443",
+            "google_play_url": null,
+            "icon_url": "https://leasol.github.io/images/animal_icon.png"
+        }
+    {
+            "name": "Quiz: Gotta Name 'Em All",
+            "app_store_url": null,
+            "google_play_url": null,
+            "icon_url": "https://leasol.github.io/images/pokemon_icon.png"
+        }
+    ]
+}
