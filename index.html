@@ -55,9 +55,41 @@
       text-align: center;
       font-size: 1.2em;
       max-width: 800px;
-      margin: 0 auto 40px auto;
+      margin: 0 auto 20px auto;
       z-index: 1;
       position: relative;
+    }
+
+    .contact-section {
+      text-align: center;
+      margin-bottom: 40px;
+      z-index: 1;
+      position: relative;
+    }
+
+    .contact-section p {
+      font-size: 1.2em;
+      max-width: 600px;
+      margin: 0 auto 20px;
+      color: #333;
+    }
+
+    .contact-button {
+      display: inline-block;
+      background: #007bff;
+      color: white;
+      font-size: 1.1em;
+      font-weight: bold;
+      padding: 14px 28px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .contact-button:hover {
+      background: #0056b3;
+      transform: scale(1.05);
     }
 
     .apps-grid {
@@ -117,40 +149,6 @@
       transform: scale(1.05);
       box-shadow: 0 0 10px rgba(100, 100, 255, 0.2);
     }
-
-    /* New contact section styles */
-    .contact-section {
-      text-align: center;
-      margin-top: 40px;
-      margin-bottom: 60px;
-      z-index: 1;
-      position: relative;
-    }
-
-    .contact-section p {
-      font-size: 1.2em;
-      max-width: 600px;
-      margin: 0 auto 20px;
-      color: #333;
-    }
-
-    .contact-button {
-      display: inline-block;
-      background: #007bff;
-      color: white;
-      font-size: 1.1em;
-      font-weight: bold;
-      padding: 14px 28px;
-      border-radius: 12px;
-      text-decoration: none;
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .contact-button:hover {
-      background: #0056b3;
-      transform: scale(1.05);
-    }
   </style>
 </head>
 
@@ -158,17 +156,12 @@
 
   <div class="background-icons">
     <!-- Floating Programming Icons -->
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
-      style="top: 10%; left: 15%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
-      style="top: 25%; left: 70%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
-      style="top: 45%; left: 35%;" />
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" style="top: 10%; left: 15%;" />
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" style="top: 25%; left: 70%;" />
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" style="top: 45%; left: 35%;" />
     <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" style="top: 70%; left: 10%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"
-      style="top: 100%; left: 80%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg"
-      style="top: 140%; left: 50%;" />
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" style="top: 100%; left: 80%;" />
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg" style="top: 140%; left: 50%;" />
   </div>
 
   <h1>Lea Sol Apps</h1>
@@ -177,11 +170,7 @@
     engaging experiences. From puzzles to playful quizzes, I build apps that entertain and inspire.
   </p>
 
-  <div class="apps-grid" id="appsGrid">
-    <!-- Apps will load here -->
-  </div>
-
-  <!-- Contact section -->
+  <!-- Contact section now placed after subtitle -->
   <div class="contact-section">
     <p>
       Need help or found a bug? I’m always happy to assist. Just send me an email and I’ll get back to you personally.
@@ -189,6 +178,10 @@
     <a class="contact-button" href="mailto:SoldarCompany@gmail.com">
       ✉️ Contact Me at SoldarCompany@gmail.com
     </a>
+  </div>
+
+  <div class="apps-grid" id="appsGrid">
+    <!-- Apps will load here -->
   </div>
 
   <script>
