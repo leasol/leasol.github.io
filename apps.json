@@ -7,91 +7,72 @@
             "name": "Quiz: Celebs Game 2025",
             "app_store_url": "https://apps.apple.com/app/id6745571998",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famousquiz",
-            "icon_url": "https://leasol.github.io/images/celebs_icon.png"
         },
         {
             "id": "com.soldar.mindblow",
             "name": "MindBlow: Solve Image Riddles",
             "app_store_url": "https://apps.apple.com/app/id6745507197",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.mindblow",
-            "icon_url": "https://leasol.github.io/images/mindblow_icon.png"
         },
         {
             "id": "com.soldar.stereotypequiz",
             "name": "Quiz: What Country Am I From?",
             "app_store_url": "https://apps.apple.com/app/id6747153287",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.stereotypequiz",
-            "icon_url": "https://leasol.github.io/images/country_icon.png"
         },
         {
             "id": "com.soldar.flagquiz",
             "name": "Quiz: Flags of Our World",
             "app_store_url": "https://apps.apple.com/app/id6747153050",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.flagquiz",
-            "icon_url": "https://leasol.github.io/images/flags_icon.png"
         },
         {
             "id": "com.soldar.logoquiz",
             "name": "Logo Quiz 2025",
             "app_store_url": "https://apps.apple.com/app/id6745572091",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.logoquiz",
-            "icon_url": "https://leasol.github.io/images/logo_icon.png"
         },
         {
             "id": "com.soldar.emojiquiz",
             "name": "Quiz: Emoji Madness",
             "app_store_url": "https://apps.apple.com/app/id6747152800",
-            "google_play_url": null,
-            "icon_url": "https://leasol.github.io/images/emoji_icon.png"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.emojiquiz",
         },
         {
             "id": "com.soldar.impossiblequiz",
             "name": "Quiz: Impossible Animal Hybrid",
             "app_store_url": "https://apps.apple.com/app/id6748075443",
-            "google_play_url": null,
-            "icon_url": "https://leasol.github.io/images/animals_icon.png"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.impossiblequiz",
         },
         {
-            "id": "com.soldar.pokemonquiz",
+            "id": "com.soldar.creaturequiz",
             "name": "Quiz: Name 'Em All",
             "app_store_url": "https://apps.apple.com/app/id6748075464",
-            "google_play_url": null,
-            "icon_url": "https://leasol.github.io/images/pokemon_icon.png"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.creaturequiz",
         },
         {
             "id": "com.soldar.landmarksquiz",
             "name": "Quiz: Landmarks",
             "app_store_url": "https://apps.apple.com/app/id6749217364",
-            "google_play_url": null,
-            "icon_url": "https://leasol.github.io/images/landmarks_icon.png"
-        },
-        {
-            "id": "com.soldar.nationalquiz",
-            "name": "Quiz: National Animals",
-            "app_store_url": null,
-            "google_play_url": null,
-            "icon_url": "https://leasol.github.io/images/national_icon.png"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.landmarksquiz",
         },
         {
             "id": "com.soldar.carlogoquiz",
             "name": "Quiz: Car Logos",
-            "app_store_url": null,
-            "google_play_url": null,
-            "icon_url": "https://leasol.github.io/images/car_icon.png"
+            "app_store_url": "https://apps.apple.com/app/id6749352556",
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.carlogoquiz",
         },
         {
             "id": "com.soldar.babysitters",
             "name": "Babysitter - Find Help Nearby",
             "app_store_url": "https://apps.apple.com/app/id6745571892",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.babysitters",
-            "icon_url": "https://leasol.github.io/images/baby_icon.png"
         },
         {
             "id": "com.soldar.famous_graves",
             "name": "Famous Graves",
             "app_store_url": "https://play.google.com/store/apps/details?id=com.soldar.famous_graves",
             "google_play_url": "https://apps.apple.com/app/id6748740151",
-            "icon_url": "https://leasol.github.io/images/graves_icon.png"
         }
     ]
 }
