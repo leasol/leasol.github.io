@@ -4,7 +4,7 @@
     "apps": [
         {
             "id": "com.soldar.famousquiz",
-            "update": true,
+            "update": false,
             "name": "Quiz: Celebs Game 2025",
             "app_store_url": "https://apps.apple.com/app/id6745571998",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famousquiz"
