@@ -12,7 +12,7 @@
         },
         {
             "id": "com.soldar.mindblow",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "MindBlow: Solve Image Riddles",
             "app_store_url": "https://apps.apple.com/app/id6745507197",
