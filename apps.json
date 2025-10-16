@@ -20,7 +20,7 @@
         },
         {
             "id": "com.soldar.stereotypequiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Quiz: What Country Am I From?",
             "app_store_url": "https://apps.apple.com/app/id6747153287",
