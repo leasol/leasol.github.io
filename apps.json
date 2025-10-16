@@ -28,7 +28,7 @@
         },
         {
             "id": "com.soldar.flagquiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Quiz: Flags of Our World",
             "app_store_url": "https://apps.apple.com/app/id6747153050",
@@ -36,7 +36,7 @@
         },
         {
             "id": "com.soldar.logoquiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Logo Quiz 2025",
             "app_store_url": "https://apps.apple.com/app/id6745572091",
@@ -44,7 +44,7 @@
         },
         {
             "id": "com.soldar.emojiquiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Quiz: Emoji Madness",
             "app_store_url": "https://apps.apple.com/app/id6747152800",
@@ -52,7 +52,7 @@
         },
         {
             "id": "com.soldar.impossiblequiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Quiz: Impossible Animal Hybrid",
             "app_store_url": "https://apps.apple.com/app/id6748075443",
@@ -60,7 +60,7 @@
         },
         {
             "id": "com.soldar.creaturequiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Quiz: Name 'Em All",
             "app_store_url": "https://apps.apple.com/app/id6748075464",
@@ -68,7 +68,7 @@
         },
         {
             "id": "com.soldar.landmarksquiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Quiz: Landmarks",
             "app_store_url": "https://apps.apple.com/app/id6749217364",
@@ -76,7 +76,7 @@
         },
         {
             "id": "com.soldar.carlogoquiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Logo Drive: Car Challenge",
             "app_store_url": "https://apps.apple.com/app/id6749352556",
@@ -84,7 +84,7 @@
         },
         {
             "id": "com.soldar.babysitters",
-            "update": false,
+            "update": true,
             "quiz": false,
             "name": "Babysitter - Find Help Nearby",
             "app_store_url": "https://apps.apple.com/app/id6745571892",
@@ -92,7 +92,7 @@
         },
         {
             "id": "com.soldar.famous_graves",
-            "update": false,
+            "update": true,
             "quiz": false,
             "name": "Famous Graves",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famous_graves",
