@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Level Logos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: linear-gradient(to right, #fbc2eb, #a6c1ee);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #fff;
+      margin-bottom: 40px;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .logo-container {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      /* square */
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2), -5px -5px 15px rgba(255, 255, 255, 0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+      background: #fff;
+    }
+
+    .logo-container:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 10px 10px 25px rgba(0, 0, 0, 0.3), -5px -5px 20px rgba(255, 255, 255, 0.3);
+    }
+
+    .logo-container img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80%;
+      height: 80%;
+      transform: translate(-50%, -50%);
+      object-fit: contain;
+    }
+
+    .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      font-weight: bold;
+      text-align: center;
+      padding: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 14px;
+    }
+
+    .logo-container:hover .overlay {
+      opacity: 1;
+    }
+
+    @media(max-width: 700px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+    }
+
+    @media(max-width: 450px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Level <span id="level-number"></span></h1>
+  <div class="grid" id="logo-grid"></div>
+
+  <script>
+    const jsonURL = 'https://leasol.github.io/logoquiz/json/sorted.json';
+    const urlParams = new URLSearchParams(window.location.search);
+    const levelNum = parseInt(urlParams.get('level')) || 1;
+    document.getElementById('level-number').textContent = levelNum;
+
+    fetch(jsonURL)
+      .then(res => res.json())
+      .then(data => {
+        const start = (levelNum - 1) * 12;
+        const end = Math.min(levelNum * 12, data.length);
+        const levelItems = data.slice(start, end);
+
+        const grid = document.getElementById('logo-grid');
+
+        levelItems.forEach(name => {
+          const container = document.createElement('div');
+          container.className = 'logo-container';
+
+          const img = document.createElement('img');
+          img.src = `https://leasol.github.io/logoquiz/proced/${name}`;
+
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay';
+          overlay.textContent = name;
+
+          container.appendChild(img);
+          container.appendChild(overlay);
+          grid.appendChild(container);
+        });
+      });
+  </script>
+</body>
+
+</html>
