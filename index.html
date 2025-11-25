@@ -15,40 +15,23 @@
       overflow-x: hidden;
     }
 
-    .background-icons {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .background-icons img {
-      position: absolute;
-      width: 50px;
-      opacity: 0.06;
-      animation: float 25s infinite linear;
-    }
-
-    @keyframes float {
-      from {
-        transform: translateY(100vh) rotate(0deg);
-      }
-
-      to {
-        transform: translateY(-200vh) rotate(360deg);
-      }
+    h1,
+    h2 {
+      text-align: center;
+      color: #0a0a0a;
+      position: relative;
+      z-index: 1;
     }
 
     h1 {
-      text-align: center;
       font-size: 3.5em;
-      color: #0a0a0a;
       margin-top: 40px;
-      position: relative;
-      z-index: 1;
+    }
+
+    h2 {
+      font-size: 2.4em;
+      margin-top: 60px;
+      margin-bottom: 20px;
     }
 
     p.about {
@@ -63,8 +46,6 @@
     .contact-section {
       text-align: center;
       margin-bottom: 40px;
-      z-index: 1;
-      position: relative;
     }
 
     .contact-section p {
@@ -98,8 +79,6 @@
       gap: 30px;
       justify-content: center;
       padding: 0 20px 60px;
-      z-index: 1;
-      position: relative;
     }
 
     .app-card {
@@ -135,191 +114,222 @@
       gap: 10px;
       justify-content: center;
       flex-wrap: wrap;
+      margin-top: 12px;
     }
 
     .store-buttons img {
       width: 140px;
       height: auto;
       border-radius: 8px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
     }
 
-    .store-buttons img:hover {
+    .answers-btn {
+      margin-top: 12px;
+      display: inline-block;
+      padding: 10px 18px;
+      background: #6e00ff;
+      color: white;
+      border-radius: 10px;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(110, 0, 255, 0.3);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .answers-btn:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 10px rgba(100, 100, 255, 0.2);
+      background: #5300c7;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="background-icons">
-    <!-- Floating Programming Icons -->
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
-      style="top: 10%; left: 15%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
-      style="top: 25%; left: 70%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
-      style="top: 45%; left: 35%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" style="top: 70%; left: 10%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"
-      style="top: 100%; left: 80%;" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg"
-      style="top: 140%; left: 50%;" />
-  </div>
-
   <h1>Lea Sol Apps</h1>
   <p class="about">
-    I'm Lea Sol Bokobza, a passionate mobile app developer blending creativity and technology to craft smart,
+    I'm Lea Sol Bokobza, a passionate mobile developer blending creativity and technology to craft smart,
     engaging experiences. From puzzles to playful quizzes, I build apps that entertain and inspire.
   </p>
 
-  <!-- Contact section now placed after subtitle -->
   <div class="contact-section">
-    <p>
-      Need help or found a bug? I’m always happy to assist. Just send me an email and I’ll get back to you personally.
-    </p>
-    <a class="contact-button" href="mailto:SoldarCompany@gmail.com">
-      ✉️ Contact Me at SoldarCompany@gmail.com
-    </a>
+    <p>Need help or found a bug? Send me a message and I’ll help personally.</p>
+    <a class="contact-button" href="mailto:SoldarCompany@gmail.com">✉️ Email Me</a>
   </div>
 
-  <div class="apps-grid" id="appsGrid">
-    <!-- Apps will load here -->
-  </div>
+  <!-- QUIZIVERSE SECTION -->
+  <h2>Quiziverse</h2>
+  <div class="apps-grid" id="quizGrid"></div>
+
+  <!-- APPS SECTION -->
+  <h2>Other Apps</h2>
+  <div class="apps-grid" id="appsGrid"></div>
 
   <script>
+    const quizzesList = [
+      "logoquiz", "actorquiz", "carlogoquiz", "emojiquiz", "flagsquiz",
+      "impossiblequiz", "landmarksquiz", "mindblowquiz", "pokemonquiz",
+      "steretypesquiz", "qetflix"
+    ];
+
     async function loadApps() {
       try {
-        const data = {
-    "developer": "Lea Sol Bokobza",
-    "developer_google_play_id": "6683676916228216712",
-    "apps": [
-        {
-            "id": "com.soldar.famousquiz",
-            "update": true,
-            "quiz": true,
-            "name": "Quiz: Celebs Game 2025",
-            "app_store_url": "https://apps.apple.com/app/id6745571998",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famousquiz"
-        },
-        {
-            "id": "com.soldar.mindblow",
-            "update": true,
-            "quiz": true,
-            "name": "MindBlow: Solve Image Riddles",
-            "app_store_url": "https://apps.apple.com/app/id6745507197",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.mindblow"
-        },
-        {
-            "id": "com.soldar.stereotypequiz",
-            "update": true,
-            "quiz": true,
-            "name": "Quiz: What Country Am I From?",
-            "app_store_url": "https://apps.apple.com/app/id6747153287",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.stereotypequiz"
-        },
-        {
-            "id": "com.soldar.flagquiz",
-            "update": true,
-            "quiz": true,
-            "name": "Quiz: Flags of Our World",
-            "app_store_url": "https://apps.apple.com/app/id6747153050",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.flagquiz"
-        },
-        {
-            "id": "com.soldar.logoquiz",
-            "update": true,
-            "quiz": true,
-            "name": "Logo Quiz 2025",
-            "app_store_url": "https://apps.apple.com/app/id6745572091",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.logoquiz"
-        },
-        {
-            "id": "com.soldar.emojiquiz",
-            "update": true,
-            "quiz": true,
-            "name": "Quiz: Emoji Madness",
-            "app_store_url": "https://apps.apple.com/app/id6747152800",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.emojiquiz"
-        },
-        {
-            "id": "com.soldar.impossiblequiz",
-            "update": true,
-            "quiz": true,
-            "name": "Quiz: Impossible Animal Hybrid",
-            "app_store_url": "https://apps.apple.com/app/id6748075443",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.impossiblequiz"
-        },
-        {
-            "id": "com.soldar.creaturequiz",
-            "update": true,
-            "quiz": true,
-            "name": "Quiz: Name 'Em All",
-            "app_store_url": "https://apps.apple.com/app/id6748075464",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.creaturequiz"
-        },
-        {
-            "id": "com.soldar.landmarksquiz",
-            "update": true,
-            "quiz": true,
-            "name": "Quiz: Landmarks",
-            "app_store_url": "https://apps.apple.com/app/id6749217364",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.landmarksquiz"
-        },
-        {
-            "id": "com.soldar.carlogoquiz",
-            "update": true,
-            "quiz": true,
-            "name": "Logo Drive: Car Challenge",
-            "app_store_url": "https://apps.apple.com/app/id6749352556",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.carlogoquiz"
-        },
-        {
-            "id": "com.soldar.babysitters",
-            "update": true,
-            "quiz": false,
-            "name": "Babysitter - Find Help Nearby",
-            "app_store_url": "https://apps.apple.com/app/id6745571892",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.babysitters"
-        },
-        {
-            "id": "com.soldar.famous_graves",
-            "update": true,
-            "quiz": false,
-            "name": "Who's Dead?",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famous_graves",
-            "app_store_url": "https://apps.apple.com/app/id6748740151"
-        },
-        {
-            "id": "com.soldar.actorsid",
-            "update": true,
-            "quiz": false,
-            "name": "Actor ID",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.actorsid",
-            "app_store_url": "https://apps.apple.com/il/app/actor-id/id6754832629"
-        },
-        {
-            "id": "com.soldar.horoscope",
-            "update": true,
-            "quiz": false,
-            "name": "Actor ID",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.horoscope",
-            "app_store_url": null
-        }
-    ]
-};
-        const grid = document.getElementById("appsGrid");
+        const data = { /* --- SAME DATA YOU PROVIDED (unchanged) --- */
+          "developer": "Lea Sol Bokobza",
+          "developer_google_play_id": "6683676916228216712",
+          "apps": [
+            {
+              "id": "com.soldar.famousquiz",
+              "update": true,
+              "quiz": true,
+              "name": "Quiz: Celebs Game 2025",
+              "app_store_url": "https://apps.apple.com/app/id6745571998",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famousquiz",
+              "answers": "actorquiz"
+            },
+            {
+              "id": "com.soldar.mindblow",
+              "update": true,
+              "quiz": true,
+              "name": "MindBlow: Solve Image Riddles",
+              "app_store_url": "https://apps.apple.com/app/id6745507197",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.mindblow",
+              "answers": "mindblowquiz"
+
+            },
+            {
+              "id": "com.soldar.stereotypequiz",
+              "update": true,
+              "quiz": true,
+              "name": "Quiz: What Country Am I From?",
+              "app_store_url": "https://apps.apple.com/app/id6747153287",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.stereotypequiz",
+              "answers": "steretypesquiz"
+
+            },
+            {
+              "id": "com.soldar.flagquiz",
+              "update": true,
+              "quiz": true,
+              "name": "Quiz: Flags of Our World",
+              "app_store_url": "https://apps.apple.com/app/id6747153050",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.flagquiz",
+              "answers": "flagsquiz"
+
+            },
+            {
+              "id": "com.soldar.logoquiz",
+              "update": true,
+              "quiz": true,
+              "name": "Logo Quiz 2025",
+              "app_store_url": "https://apps.apple.com/app/id6745572091",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.logoquiz",
+              "answers": "logoquiz"
+
+            },
+            {
+              "id": "com.soldar.emojiquiz",
+              "update": true,
+              "quiz": true,
+              "name": "Quiz: Emoji Madness",
+              "app_store_url": "https://apps.apple.com/app/id6747152800",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.emojiquiz",
+              "answers": "emojiquiz"
+
+            },
+            {
+              "id": "com.soldar.impossiblequiz",
+              "update": true,
+              "quiz": true,
+              "name": "Quiz: Impossible Animal Hybrid",
+              "app_store_url": "https://apps.apple.com/app/id6748075443",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.impossiblequiz",
+              "answers": "impossiblequiz"
+
+            },
+            {
+              "id": "com.soldar.creaturequiz",
+              "update": true,
+              "quiz": true,
+              "name": "Quiz: Name 'Em All",
+              "app_store_url": "https://apps.apple.com/app/id6748075464",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.creaturequiz",
+              "answers": "pokemonquiz"
+
+            },
+            {
+              "id": "com.soldar.landmarksquiz",
+              "update": true,
+              "quiz": true,
+              "name": "Quiz: Landmarks",
+              "app_store_url": "https://apps.apple.com/app/id6749217364",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.landmarksquiz",
+              "answers": "landmarksquiz"
+
+            },
+            {
+              "id": "com.soldar.carlogoquiz",
+              "update": true,
+              "quiz": true,
+              "name": "Logo Drive: Car Challenge",
+              "app_store_url": "https://apps.apple.com/app/id6749352556",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.carlogoquiz",
+              "answers": "carloogquiz"
+
+            },
+            {
+              "id": "com.soldar.babysitters",
+              "update": true,
+              "quiz": false,
+              "name": "Babysitter - Find Help Nearby",
+              "app_store_url": "https://apps.apple.com/app/id6745571892",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.babysitters"
+            },
+            {
+              "id": "com.soldar.famous_graves",
+              "update": true,
+              "quiz": false,
+              "name": "Who's Dead?",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famous_graves",
+              "app_store_url": "https://apps.apple.com/app/id6748740151"
+            },
+            {
+              "id": "com.soldar.actorsid",
+              "update": true,
+              "quiz": false,
+              "name": "Actor ID",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.actorsid",
+              "app_store_url": "https://apps.apple.com/il/app/actor-id/id6754832629"
+            },
+            {
+              "id": "com.soldar.horoscope",
+              "update": true,
+              "quiz": false,
+              "name": "Daily Horoscope",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.horoscope",
+              "app_store_url": null
+            },
+            {
+              "id": "com.soldar.qetflix",
+              "update": true,
+              "quiz": true,
+              "name": "Qetflix: TV/Movie Quiz",
+              "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.qetflix",
+              "app_store_url": null,
+              "answers": "qetflix"
+
+            }
+          ]
+        };
+
+        const quizGrid = document.getElementById("quizGrid");
+        const appsGrid = document.getElementById("appsGrid");
 
         data.apps.forEach(app => {
           const card = document.createElement("div");
           card.className = "app-card";
 
           const icon = document.createElement("img");
-          icon.src = "https://leasol.github.io/icons/" + app.id + ".png"
-
-          icon.alt = app.name;
+          icon.src = "https://leasol.github.io/icons/" + app.id + ".png";
           icon.className = "app-icon";
           card.appendChild(icon);
 
@@ -337,7 +347,6 @@
             gp.target = "_blank";
             const gpImg = document.createElement("img");
             gpImg.src = "https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg";
-            gpImg.alt = "Get it on Google Play";
             gp.appendChild(gpImg);
             buttons.appendChild(gp);
           }
@@ -348,17 +357,28 @@
             ios.target = "_blank";
             const iosImg = document.createElement("img");
             iosImg.src = "https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg";
-            iosImg.alt = "Download on the App Store";
             ios.appendChild(iosImg);
             buttons.appendChild(ios);
           }
 
           card.appendChild(buttons);
-          grid.appendChild(card);
+
+          if (app.quiz) {
+            if (app.answers) {
+              const ans = document.createElement("a");
+              ans.className = "answers-btn";
+              ans.href = `https://leasol.github.io/levels.html?quiz=${app.answers}`;
+              ans.textContent = "View Answers";
+              card.appendChild(ans);
+            }
+            quizGrid.appendChild(card);
+          } else {
+            appsGrid.appendChild(card);
+          }
+
         });
       } catch (err) {
-        document.getElementById("appsGrid").textContent = "Failed to load apps.";
-        console.error("Error loading JSON:", err);
+        console.error(err);
       }
     }
 

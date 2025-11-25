@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Levels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 0.5s ease;
+        }
+
+        h1 {
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 40px;
+            font-size: 40px;
+            text-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s ease;
+        }
+
+        details {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 10px 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        summary {
+            font-size: 30px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            padding: 10px 0;
+        }
+
+        .levels-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding-bottom: 10px;
+        }
+
+        .level-btn {
+            width: 160px;
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 22px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .level-btn {
+            background: linear-gradient(145deg, #fff, #e0e0e0);
+            color: #333;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2),
+                -5px -5px 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .level-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+    </style>
+
+    <script>
+        const themes = {
+            actorquiz: {
+                bg: "linear-gradient(to right, #142e5e, #3562cc)",
+                btn: "linear-gradient(145deg, #87c1fe, #98cafd)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #54678a"
+            },
+
+            carlogoquiz: {
+                bg: "linear-gradient(to right, #0b2e1d, #1d5b3a)",
+                btn: "linear-gradient(145deg, #3d8b5a, #4fae72)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #4fae72"
+            },
+
+            emojiquiz: {
+                bg: "linear-gradient(to right, #2B004A, #6A0DAD)",
+                btn: "linear-gradient(145deg, #9B30FF, #D8B4FF)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #D8B4FF"
+            },
+
+            flagsquiz: {
+                bg: "linear-gradient(to right, #44293e, #60b4e9)",
+                btn: "linear-gradient(145deg, #60b4e9, #7bcaff)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #60b4e9"
+            },
+
+            impossiblequiz: {
+                bg: "linear-gradient(to right, #311B92, #00E5FF)",
+                btn: "linear-gradient(145deg, #00E5FF, #7ff5ff)",
+                btnText: "#000000",
+                hover: "0 0 25px #00E5FF"
+            },
+
+            landmarksquiz: {
+                // *MADE UP BY ME – Elegant travel palette*
+                bg: "linear-gradient(to right, #2E3192, #1BFFFF)",
+                btn: "linear-gradient(145deg, #6A82FB, #FC5C7D)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #6A82FB"
+            },
+
+            logoquiz: {
+                bg: "linear-gradient(to right, #1E0E0B, #3c1c14)",
+                btn: "linear-gradient(145deg, #D9A236, #F5D49B)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #CC7A56"
+            },
+
+            mindblowquiz: {
+                // *Orange–pink explosive neon*
+                bg: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                btn: "linear-gradient(145deg, #ff758c, #ff7eb3)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #ff4b2b"
+            },
+
+            qetflix: {
+                bg: "linear-gradient(to right, #141414, #000000)",
+                btn: "linear-gradient(145deg, #E50914, #B81D24)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #E50914"
+            },
+
+            pokemonquiz: {
+                bg: "linear-gradient(to right, #FF0000, #ffffff, #000000)",
+                btn: "linear-gradient(145deg, #FF0000, #FFC0C0)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #FF0000"
+            },
+
+            steretypesquiz: {
+                // *MADE UP BY ME – bold social-colors style*
+                bg: "linear-gradient(to right, #ff0066, #ffcc00)",
+                btn: "linear-gradient(145deg, #ff6699, #ffdd55)",
+                btnText: "#000000",
+                hover: "0 0 25px #ff6699"
+            }
+        };
+
+        function applyTheme(quizKey) {
+            const theme = themes[quizKey];
+            if (!theme) return;
+
+            document.body.style.background = theme.bg;
+            const h1 = document.getElementById("quiz-title");
+            if (h1) h1.style.textShadow = theme.hover;
+
+            const style = document.createElement("style");
+            style.innerHTML = `
+                .level-btn {
+                    background: ${theme.btn} !important;
+                    color: ${theme.btnText} !important;
+                    box-shadow: 6px 6px 18px rgba(0,0,0,0.25),
+                                -4px -4px 15px rgba(255,255,255,0.5);
+                }
+
+                .level-btn:hover {
+                    box-shadow: 0 0 25px ${theme.hover};
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    </script>
+</head>
+
+<body>
+    <h1 id="quiz-title"></h1>
+
+    <script>
+        const quizzes = {
+            logoquiz: { name: "Logo Quiz", json: "https://leasol.github.io/logoquiz/json/sorted.json", images: "https://leasol.github.io/logoquiz/proced/", type: "list" },
+            actorquiz: {
+                name: "Actor Quiz", type: "categories", categories: {
+                    "Next Gen Collection": { json: "https://leasol.github.io/actorquiz/json/newactors.json", images: "https://leasol.github.io/actorquiz/toons", type: "dict" },
+                    "Childhood Pictures": { json: "https://leasol.github.io/actorquiz/json/celebrities.json", images: "https://leasol.github.io/actorquiz/left", type: "dict" },
+                    "Up Close & Personal": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/originals_scaled", type: "dict" },
+                    "Legacy Collection": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/toons_scaled", type: "dict" }
+                }
+            },
+            carlogoquiz: { name: "Car Logo Quiz", json: "https://leasol.github.io/carlogoquiz/json/sorted.json", images: "https://leasol.github.io/carlogoquiz/toons_scaled", type: "list" },
+            emojiquiz: { name: "Emoji Quiz", json: "https://leasol.github.io/emojiquiz/json/sorted.json", images: "emoji", type: "dict" },
+            flagsquiz: { name: "Flags Quiz", json: "https://leasol.github.io/flagsquiz/json/sorted.json", images: "https://leasol.github.io/flagsquiz/toons_scaled", type: "list" },
+            impossiblequiz: { name: "Impossible Quiz", json: "https://leasol.github.io/impossiblequiz/json/sorted.json", images: "https://leasol.github.io/impossiblequiz/originals_scaled", type: "list" },
+            landmarksquiz: { name: "Landmarks Quiz", json: "https://leasol.github.io/landmarksquiz/json/sorted.json", images: "https://leasol.github.io/landmarksquiz/originals_scaled", type: "list" },
+            mindblowquiz: { name: "Mindblow Quiz", json: "https://leasol.github.io/mindblowquiz/json/sorted.json", images: "https://leasol.github.io/mindblowquiz/json", type: "list" },
+            pokemonquiz: { name: "Pokemon Quiz", json: "https://leasol.github.io/pokemonquiz/json/sorted.json", images: "https://leasol.github.io/pokemonquiz/toons_scaled", type: "generations", counts: [151, 100, 135, 107, 156, 72, 88, 89, 120] },
+
+            steretypesquiz: { name: "Stereotypes Quiz", json: "https://leasol.github.io/steretypesquiz/json/sorted.json", images: "https://leasol.github.io/steretypesquiz/toons1", type: "list" },
+
+            qetflix: {
+                name: "Qetflix Quiz",
+                json: "https://leasol.github.io/netflix_titles_backup/ordered_titles.json",
+                images: "https://leasol.github.io/netflix_titles_backup/toons_scaled",
+                type: "list"
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const quizKey = urlParams.get("quiz");
+        if (!quizKey || !quizzes[quizKey]) {
+            document.body.innerHTML = "<h2>Quiz not found</h2>";
+            throw new Error("Quiz not found");
+        }
+
+        applyTheme(quizKey);
+
+        const quiz = quizzes[quizKey];
+        document.getElementById("quiz-title").textContent = quiz.name + " - Answers";
+
+        async function getItems() {
+            if (quiz.type === "categories") {
+                const cat = urlParams.get('category') || Object.keys(quiz.categories)[0];
+                const catData = quiz.categories[cat];
+                const res = await fetch(catData.json);
+                const data = await res.json();
+                return { items: catData.type === "dict" ? Object.keys(data) : data, cat };
+            } else if (quiz.type === "generations") {
+                const res = await fetch(quiz.json);
+                return { items: await res.json() };
+            } else {
+                const res = await fetch(quiz.json);
+                const data = await res.json();
+                return { items: quiz.type === "dict" ? Object.keys(data) : data };
+            }
+        }
+
+        getItems().then(({ items, cat }) => {
+
+            /* ----------- GENERATIONS COLLAPSED ----------- */
+            if (quiz.type === "generations") {
+
+                const counts = quiz.counts;
+                let startIndex = 0;
+
+                for (let g = 0; g < counts.length; g++) {
+
+                    const genCount = counts[g];
+                    const genItems = items.slice(startIndex, startIndex + genCount);
+                    startIndex += genCount;
+
+                    const section = document.createElement("details");
+                    section.open = false; // collapsed
+                    const summary = document.createElement("summary");
+                    summary.textContent = `Generation ${g + 1}`;
+                    section.appendChild(summary);
+
+                    const container = document.createElement("div");
+                    container.className = "levels-container";
+
+                    const totalLevels = Math.ceil(genItems.length / 12);
+
+                    for (let lvl = 0; lvl < totalLevels; lvl++) {
+                        const levelBtn = document.createElement("div");
+                        levelBtn.className = "level-btn";
+                        levelBtn.textContent = `Level ${lvl + 1}`;
+
+                        levelBtn.onclick = () => {
+                            window.location.href =
+                                `level.html?quiz=${quizKey}&generation=${g + 1}&level=${lvl + 1}`;
+                        };
+
+                        container.appendChild(levelBtn);
+                    }
+
+                    section.appendChild(container);
+                    document.body.appendChild(section);
+                }
+
+                return;
+            }
+
+            /* ----------- CATEGORIES COLLAPSED ----------- */
+            if (quiz.type === "categories") {
+
+                Object.entries(quiz.categories).forEach(([catName, catData]) => {
+
+                    const section = document.createElement("details");
+                    section.open = false;
+                    const summary = document.createElement("summary");
+                    summary.textContent = catName;
+                    section.appendChild(summary);
+
+                    const container = document.createElement("div");
+                    container.className = "levels-container";
+
+                    const fetchJson = async () => {
+                        const res = await fetch(catData.json);
+                        const data = await res.json();
+                        return catData.type === "dict" ? Object.keys(data) : data;
+                    };
+
+                    fetchJson().then(catItems => {
+                        const totalLevels = Math.ceil(catItems.length / 12);
+
+                        for (let i = 0; i < totalLevels; i++) {
+                            const levelBtn = document.createElement("div");
+                            levelBtn.className = "level-btn";
+                            levelBtn.textContent = `Level ${i + 1}`;
+
+                            levelBtn.onclick = () => {
+                                window.location.href =
+                                    `level.html?quiz=${quizKey}&level=${i + 1}&category=${encodeURIComponent(catName)}`;
+                            };
+
+                            container.appendChild(levelBtn);
+                        }
+                    });
+
+                    section.appendChild(container);
+                    document.body.appendChild(section);
+                });
+
+                return;
+            }
+
+            /* ----------- REGULAR QUIZZES ----------- */
+            const totalLevels = Math.ceil(items.length / 12);
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "levels-container";
+
+            for (let i = 0; i < totalLevels; i++) {
+                const levelBtn = document.createElement("div");
+                levelBtn.className = "level-btn";
+                levelBtn.textContent = `Level ${i + 1}`;
+                levelBtn.onclick = () => {
+                    let url = `level.html?quiz=${quizKey}&level=${i + 1}`;
+                    window.location.href = url;
+                };
+                wrapper.appendChild(levelBtn);
+            }
+
+            document.body.appendChild(wrapper);
+        });
+
+    </script>
+</body>
+
+</html>

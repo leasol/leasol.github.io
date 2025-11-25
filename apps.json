@@ -1,4 +1,4 @@
-{
+{ /* --- SAME DATA YOU PROVIDED (unchanged) --- */
     "developer": "Lea Sol Bokobza",
     "developer_google_play_id": "6683676916228216712",
     "apps": [
@@ -8,7 +8,8 @@
             "quiz": true,
             "name": "Quiz: Celebs Game 2025",
             "app_store_url": "https://apps.apple.com/app/id6745571998",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famousquiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famousquiz",
+            "answers": "actorquiz"
         },
         {
             "id": "com.soldar.mindblow",
@@ -16,7 +17,8 @@
             "quiz": true,
             "name": "MindBlow: Solve Image Riddles",
             "app_store_url": "https://apps.apple.com/app/id6745507197",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.mindblow"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.mindblow",
+            "answers": "mindblowquiz"
         },
         {
             "id": "com.soldar.stereotypequiz",
@@ -24,7 +26,8 @@
             "quiz": true,
             "name": "Quiz: What Country Am I From?",
             "app_store_url": "https://apps.apple.com/app/id6747153287",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.stereotypequiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.stereotypequiz",
+            "answers": "steretypesquiz"
         },
         {
             "id": "com.soldar.flagquiz",
@@ -32,7 +35,8 @@
             "quiz": true,
             "name": "Quiz: Flags of Our World",
             "app_store_url": "https://apps.apple.com/app/id6747153050",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.flagquiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.flagquiz",
+            "answers": "flagsquiz"
         },
         {
             "id": "com.soldar.logoquiz",
@@ -40,7 +44,8 @@
             "quiz": true,
             "name": "Logo Quiz 2025",
             "app_store_url": "https://apps.apple.com/app/id6745572091",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.logoquiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.logoquiz",
+            "answers": "logoquiz"
         },
         {
             "id": "com.soldar.emojiquiz",
@@ -48,7 +53,8 @@
             "quiz": true,
             "name": "Quiz: Emoji Madness",
             "app_store_url": "https://apps.apple.com/app/id6747152800",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.emojiquiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.emojiquiz",
+            "answers": "emojiquiz"
         },
         {
             "id": "com.soldar.impossiblequiz",
@@ -56,7 +62,8 @@
             "quiz": true,
             "name": "Quiz: Impossible Animal Hybrid",
             "app_store_url": "https://apps.apple.com/app/id6748075443",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.impossiblequiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.impossiblequiz",
+            "answers": "impossiblequiz"
         },
         {
             "id": "com.soldar.creaturequiz",
@@ -64,7 +71,8 @@
             "quiz": true,
             "name": "Quiz: Name 'Em All",
             "app_store_url": "https://apps.apple.com/app/id6748075464",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.creaturequiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.creaturequiz",
+            "answers": "pokemonquiz"
         },
         {
             "id": "com.soldar.landmarksquiz",
@@ -72,7 +80,8 @@
             "quiz": true,
             "name": "Quiz: Landmarks",
             "app_store_url": "https://apps.apple.com/app/id6749217364",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.landmarksquiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.landmarksquiz",
+            "answers": "landmarksquiz"
         },
         {
             "id": "com.soldar.carlogoquiz",
@@ -80,7 +89,8 @@
             "quiz": true,
             "name": "Logo Drive: Car Challenge",
             "app_store_url": "https://apps.apple.com/app/id6749352556",
-            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.carlogoquiz"
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.carlogoquiz",
+            "answers": "carlogogquiz"
         },
         {
             "id": "com.soldar.babysitters",
@@ -110,9 +120,18 @@
             "id": "com.soldar.horoscope",
             "update": true,
             "quiz": false,
-            "name": "Actor ID",
+            "name": "Daily Horoscope",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.horoscope",
             "app_store_url": null
+        },
+        {
+            "id": "com.soldar.qetflix",
+            "update": true,
+            "quiz": true,
+            "name": "Qetflix: TV/Movie Quiz",
+            "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.qetflix",
+            "app_store_url": null,
+            "answers": "qetflix"
         }
     ]
-}
+};

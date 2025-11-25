@@ -3,17 +3,18 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Level Logos</title>
+  <title>Level</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+
   <style>
     body {
       font-family: 'Montserrat', sans-serif;
       margin: 0;
       padding: 40px;
-      background: linear-gradient(to right, #fbc2eb, #a6c1ee);
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: background 0.5s ease;
     }
 
     h1 {
@@ -26,7 +27,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 20px;
-      max-width: 600px;
+      max-width: 700px;
       width: 100%;
     }
 
@@ -34,28 +35,35 @@
       position: relative;
       width: 100%;
       padding-top: 100%;
-      /* square */
       border-radius: 20px;
       overflow: hidden;
       cursor: pointer;
-      box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2), -5px -5px 15px rgba(255, 255, 255, 0.3);
       transition: transform 0.3s, box-shadow 0.3s;
       background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    .logo-container:hover {
-      transform: translateY(-5px) scale(1.05);
-      box-shadow: 10px 10px 25px rgba(0, 0, 0, 0.3), -5px -5px 20px rgba(255, 255, 255, 0.3);
-    }
-
-    .logo-container img {
+    .logo-container img,
+    .logo-container span.emoji {
       position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       top: 50%;
       left: 50%;
-      width: 80%;
-      height: 80%;
       transform: translate(-50%, -50%);
-      object-fit: contain;
+    }
+
+    .logo-container img.uclose {
+      width: 50%;
+      height: 100%;
+      left: 0;
+      top: 50%;
+      object-fit: cover;
+      transform-origin: left center;
+      transform: translateY(-50%) scale(2);
     }
 
     .overlay {
@@ -77,14 +85,14 @@
       opacity: 1;
     }
 
-    @media(max-width: 700px) {
+    @media(max-width:700px) {
       .grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
       }
     }
 
-    @media(max-width: 450px) {
+    @media(max-width:450px) {
       .grid {
         grid-template-columns: 1fr;
       }
@@ -93,40 +101,293 @@
 </head>
 
 <body>
-  <h1>Level <span id="level-number"></span></h1>
+  <h1 id="level-title"></h1>
   <div class="grid" id="logo-grid"></div>
 
   <script>
-    const jsonURL = 'https://leasol.github.io/logoquiz/json/sorted.json';
+    /* ------------------------------------
+       THEMES (same as category page)
+    -------------------------------------- */
+    const themes = {
+      actorquiz: {
+        bg: "linear-gradient(to right, #142e5e, #3562cc)",
+        btn: "linear-gradient(145deg, #87c1fe, #98cafd)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #54678a"
+      },
+
+      carlogoquiz: {
+        bg: "linear-gradient(to right, #0b2e1d, #1d5b3a)",
+        btn: "linear-gradient(145deg, #3d8b5a, #4fae72)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #4fae72"
+      },
+
+      emojiquiz: {
+        bg: "linear-gradient(to right, #2B004A, #6A0DAD)",
+        btn: "linear-gradient(145deg, #9B30FF, #D8B4FF)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #D8B4FF"
+      },
+
+      flagsquiz: {
+        bg: "linear-gradient(to right, #44293e, #60b4e9)",
+        btn: "linear-gradient(145deg, #60b4e9, #7bcaff)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #60b4e9"
+      },
+
+      impossiblequiz: {
+        bg: "linear-gradient(to right, #311B92, #00E5FF)",
+        btn: "linear-gradient(145deg, #00E5FF, #7ff5ff)",
+        btnText: "#000000",
+        hover: "0 0 25px #00E5FF"
+      },
+
+      landmarksquiz: {
+        bg: "linear-gradient(to right, #2E3192, #1BFFFF)",
+        btn: "linear-gradient(145deg, #6A82FB, #FC5C7D)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #6A82FB"
+      },
+
+      logoquiz: {
+        bg: "linear-gradient(to right, #1E0E0B, #3c1c14)",
+        btn: "linear-gradient(145deg, #D9A236, #F5D49B)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #CC7A56"
+      },
+
+      mindblowquiz: {
+        bg: "linear-gradient(to right, #ff416c, #ff4b2b)",
+        btn: "linear-gradient(145deg, #ff758c, #ff7eb3)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #ff4b2b"
+      },
+
+      qetflix: {
+        bg: "linear-gradient(to right, #141414, #000000)",
+        btn: "linear-gradient(145deg, #E50914, #B81D24)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #E50914"
+      },
+
+      pokemonquiz: {
+        bg: "linear-gradient(to right, #FF0000, #ffffff, #000000)",
+        btn: "linear-gradient(145deg, #FF0000, #FFC0C0)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #FF0000"
+      },
+
+      steretypesquiz: {
+        bg: "linear-gradient(to right, #ff0066, #ffcc00)",
+        btn: "linear-gradient(145deg, #ff6699, #ffdd55)",
+        btnText: "#000000",
+        hover: "0 0 25px #ff6699"
+      }
+    };
+
+
+    /* ------------------------------------
+       QUIZ DATA
+    -------------------------------------- */
+    const quizzes = {
+      logoquiz: { name: "Logo Quiz", json: "https://leasol.github.io/logoquiz/json/sorted.json", images: "https://leasol.github.io/logoquiz/proced/", type: "list" },
+
+      actorquiz: {
+        name: "Actor Quiz", type: "categories", categories: {
+          "Next Gen Collection": { json: "https://leasol.github.io/actorquiz/json/newactors.json", images: "https://leasol.github.io/actorquiz/toons", type: "dict" },
+          "Childhood Pictures": { json: "https://leasol.github.io/actorquiz/json/celebrities.json", images: "https://leasol.github.io/actorquiz/left", type: "dict" },
+          "Up Close & Personal": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/originals_scaled", type: "dict" },
+          "Legacy Collection": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/toons_scaled", type: "dict" }
+        }
+      },
+
+      carlogoquiz: { name: "Car Logo Quiz", json: "https://leasol.github.io/carlogoquiz/json/sorted.json", images: "https://leasol.github.io/carlogoquiz/originals_scaled", type: "list" },
+
+      emojiquiz: { name: "Emoji Quiz", json: "https://leasol.github.io/emojiquiz/json/sorted.json", images: "emoji", type: "dict" },
+
+      flagsquiz: { name: "Flags Quiz", json: "https://leasol.github.io/flagsquiz/json/sorted.json", images: "https://leasol.github.io/flagsquiz/toons_scaled", type: "list" },
+
+      impossiblequiz: { name: "Impossible Quiz", json: "https://leasol.github.io/impossiblequiz/json/sorted.json", images: "https://leasol.github.io/impossiblequiz/originals_scaled", type: "list" },
+
+      landmarksquiz: { name: "Landmarks Quiz", json: "https://leasol.github.io/landmarksquiz/json/sorted.json", images: "https://leasol.github.io/landmarksquiz/originals_scaled", type: "list" },
+
+      mindblowquiz: { name: "Mindblow Quiz", json: "https://leasol.github.io/mindblowquiz/json/sorted.json", images: "https://leasol.github.io/mindblowquiz/toons_scaled", type: "list" },
+
+      pokemonquiz: { name: "Pokemon Quiz", json: "https://leasol.github.io/pokemonquiz/json/sorted.json", images: "https://leasol.github.io/pokemonquiz/toons_scaled", type: "generations", counts: [151, 100, 135, 107, 156, 72, 88, 89, 120] },
+
+      steretypesquiz: { name: "Stereotypes Quiz", json: "https://leasol.github.io/steretypesquiz/json/sorted.json", images: "https://leasol.github.io/steretypesquiz/toons1", type: "list" },
+
+      qetflix: {
+        name: "Qetflix",
+        json: "https://leasol.github.io/netflix_titles_backup/ordered_titles.json",
+        images: "https://leasol.github.io/netflix_titles_backup",
+        type: "netflix"
+      }
+    };
+
+    /* ------------------------------------
+       READ URL PARAMETERS
+    -------------------------------------- */
     const urlParams = new URLSearchParams(window.location.search);
-    const levelNum = parseInt(urlParams.get('level')) || 1;
-    document.getElementById('level-number').textContent = levelNum;
+    const quizKey = urlParams.get('quiz');
+    let levelNum = parseInt(urlParams.get('level'));
+    const generation = parseInt(urlParams.get('generation'));
+    const category = urlParams.get('category');
 
-    fetch(jsonURL)
-      .then(res => res.json())
-      .then(data => {
-        const start = (levelNum - 1) * 12;
-        const end = Math.min(levelNum * 12, data.length);
-        const levelItems = data.slice(start, end);
+    if (!quizKey || !quizzes[quizKey] || !levelNum) {
+      document.body.innerHTML = "<h2>Invalid quiz or level</h2>";
+      throw new Error("Invalid quiz/level");
+    }
 
-        const grid = document.getElementById('logo-grid');
+    /* ------------------------------------
+       APPLY THEME
+    -------------------------------------- */
+    if (themes[quizKey]) {
+      document.body.style.background = themes[quizKey].bg;
 
-        levelItems.forEach(name => {
-          const container = document.createElement('div');
-          container.className = 'logo-container';
+      const style = document.createElement("style");
+      style.innerHTML = `
+        .logo-container {
+          box-shadow: 5px 5px 15px rgba(0,0,0,0.2),
+                      -5px -5px 15px rgba(255,255,255,0.3);
+        }
 
+        .logo-container:hover {
+          transform: translateY(-5px) scale(1.05);
+          box-shadow: ${themes[quizKey].hover};
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    /* ------------------------------------
+       SET PAGE TITLE
+    -------------------------------------- */
+    const quiz = quizzes[quizKey];
+    document.getElementById('level-title').textContent =
+      `${quiz.name} - Level ${levelNum}` + (category ? ` - ${category}` : "");
+
+
+    /* ------------------------------------
+       LOAD ITEMS AND BUILD GRID
+    -------------------------------------- */
+    async function getItems() {
+
+      if (quiz.type === "netflix") {
+        const res = await fetch(quiz.json);
+        const data = await res.json();
+        return { items: data, images: quiz.images };
+      }
+
+      if (quiz.type === "categories") {
+        const catData = quiz.categories[category || Object.keys(quiz.categories)[0]];
+        const res = await fetch(catData.json);
+        const data = await res.json();
+        var items = Object.keys(data);
+        if (quizKey === "actorquiz") { items = Object.keys(data).reverse(); }
+        return { items: items, images: catData.images };
+      }
+
+      if (quiz.type === "generations") {
+        const res = await fetch(quiz.json);
+        const data = await res.json();
+        const counts = quiz.counts;
+        const generationIndex = generation - 1;
+        const offset = counts.slice(0, generationIndex).reduce((a, b) => a + b, 0);
+        const genCount = counts[generationIndex];
+        const genItems = data.slice(offset, offset + genCount);
+        return { items: genItems, images: quiz.images };
+      }
+
+      if (quiz.type === "dict") {
+        const res = await fetch(quiz.json);
+        const data = await res.json();
+        return {
+          items: quizKey === 'emojiquiz'
+            ? Object.entries(data).map(([k, v]) => `${k}_${v}`)
+            : Object.keys(data),
+          images: quiz.images
+        };
+      }
+
+      const res = await fetch(quiz.json);
+      const data = await res.json();
+      return { items: data, images: quiz.images };
+    }
+
+    getItems().then(({ items, images }) => {
+      const grid = document.getElementById('logo-grid');
+
+      const start = (levelNum - 1) * 12;
+      const end = Math.min(start + 12, items.length);
+      const levelItems = items.slice(start, end);
+
+      levelItems.forEach(name => {
+        const container = document.createElement('div');
+        container.className = "logo-container";
+
+        if (images === "emoji") {
+          const span = document.createElement('span');
+          span.className = "emoji";
+          const emojiText = name.split("_")[1];
+          span.textContent = emojiText;
+
+          let fontSize = 80;
+          if (emojiText.length > 2) {
+            fontSize = Math.max(40, 80 - (emojiText.length * 5));
+          }
+          span.style.fontSize = fontSize + "px";
+          container.appendChild(span);
+        }
+
+        else if (quiz.type === "netflix") {
           const img = document.createElement('img');
-          img.src = `https://leasol.github.io/logoquiz/proced/${name}`;
 
-          const overlay = document.createElement('div');
-          overlay.className = 'overlay';
-          overlay.textContent = name;
+          const moviePath = `${images}/movies/${name}/backdrop.jpg`;
+          const tvPath = `${images}/tv/${name}/backdrop.jpg`;
+
+          img.src = moviePath;
+
+          img.onerror = () => {
+            img.onerror = null;
+            img.src = tvPath;
+
+            img.onerror = () => {
+              img.onerror = null;
+              img.src = "";
+              img.style.background = "#ddd";
+            };
+          };
 
           container.appendChild(img);
-          container.appendChild(overlay);
-          grid.appendChild(container);
-        });
+        }
+
+        else {
+          const img = document.createElement('img');
+          img.src = `${images}/${name}`;
+
+          if (quizKey === "actorquiz" && category === "Up Close & Personal") {
+            img.classList.add("uclose");
+          }
+
+          container.appendChild(img);
+        }
+
+        const overlay = document.createElement('div');
+        overlay.className = "overlay";
+        overlay.textContent = name
+          .split("_")[0]
+          .split(" ")
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ");
+        container.appendChild(overlay);
+
+        grid.appendChild(container);
       });
+    });
+
   </script>
 </body>
 
