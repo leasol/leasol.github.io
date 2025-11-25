@@ -16,6 +16,28 @@
             transition: background 0.5s ease;
         }
 
+        /* --- BACK BUTTON --- */
+        .back-btn {
+            position: relative;
+            display: inline-block;
+            padding: 14px 28px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(6px);
+            color: #fff;
+            font-size: 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+            transition: 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+        }
+
         h1 {
             width: 100%;
             text-align: center;
@@ -117,7 +139,6 @@
             },
 
             landmarksquiz: {
-                // *MADE UP BY ME – Elegant travel palette*
                 bg: "linear-gradient(to right, #2E3192, #1BFFFF)",
                 btn: "linear-gradient(145deg, #6A82FB, #FC5C7D)",
                 btnText: "#ffffff",
@@ -132,7 +153,6 @@
             },
 
             mindblowquiz: {
-                // *Orange–pink explosive neon*
                 bg: "linear-gradient(to right, #ff416c, #ff4b2b)",
                 btn: "linear-gradient(145deg, #ff758c, #ff7eb3)",
                 btnText: "#ffffff",
@@ -154,7 +174,6 @@
             },
 
             steretypesquiz: {
-                // *MADE UP BY ME – bold social-colors style*
                 bg: "linear-gradient(to right, #ff0066, #ffcc00)",
                 btn: "linear-gradient(145deg, #ff6699, #ffdd55)",
                 btnText: "#000000",
@@ -189,6 +208,10 @@
 </head>
 
 <body>
+
+    <!-- ★ BACK TO ALL APPS BUTTON ★ -->
+    <a href="https://leasol.github.io" class="back-btn">← Back to All Apps</a>
+
     <h1 id="quiz-title"></h1>
 
     <script>
@@ -251,7 +274,6 @@
 
         getItems().then(({ items, cat }) => {
 
-            /* ----------- GENERATIONS COLLAPSED ----------- */
             if (quiz.type === "generations") {
 
                 const counts = quiz.counts;
@@ -264,7 +286,7 @@
                     startIndex += genCount;
 
                     const section = document.createElement("details");
-                    section.open = false; // collapsed
+                    section.open = false;
                     const summary = document.createElement("summary");
                     summary.textContent = `Generation ${g + 1}`;
                     section.appendChild(summary);
@@ -294,7 +316,6 @@
                 return;
             }
 
-            /* ----------- CATEGORIES COLLAPSED ----------- */
             if (quiz.type === "categories") {
 
                 Object.entries(quiz.categories).forEach(([catName, catData]) => {
@@ -338,7 +359,6 @@
                 return;
             }
 
-            /* ----------- REGULAR QUIZZES ----------- */
             const totalLevels = Math.ceil(items.length / 12);
 
             const wrapper = document.createElement("div");
