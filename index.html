@@ -104,9 +104,16 @@
     }
 
     .app-name {
-      font-size: 1.1em;
+      font-size: clamp(0.9em, 2vw, 1.1em);
+      /* Automatically scales between 0.9em and 1.1em based on viewport */
       font-weight: 600;
       margin-bottom: 12px;
+      white-space: nowrap;
+      /* Prevent wrapping */
+      overflow: hidden;
+      /* Hide overflow text */
+      text-overflow: ellipsis;
+      /* Add "..." if too long */
     }
 
     .store-buttons {

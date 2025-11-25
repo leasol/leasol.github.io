@@ -211,6 +211,8 @@
 
     <!-- ★ BACK TO ALL APPS BUTTON ★ -->
     <a href="https://leasol.github.io" class="back-btn">← Back to All Apps</a>
+    <img id="quiz-icon" src="" alt="Quiz Icon"
+        style="width: 259px; height: 250px; margin-bottom: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
 
     <h1 id="quiz-title"></h1>
 
@@ -254,6 +256,26 @@
 
         const quiz = quizzes[quizKey];
         document.getElementById("quiz-title").textContent = quiz.name + " - Answers";
+
+
+        const quizIcons = {
+            actorquiz: "https://leasol.github.io/icons/com.soldar.famousquiz.png",
+            carlogoquiz: "https://leasol.github.io/icons/com.soldar.carlogoquiz.png",
+            pokemonquiz: "https://leasol.github.io/icons/com.soldar.creaturequiz.png",
+            emojiquiz: "https://leasol.github.io/icons/com.soldar.emojiquiz.png",
+            flagsquiz: "https://leasol.github.io/icons/com.soldar.flagquiz.png",
+            impossiblequiz: "https://leasol.github.io/icons/com.soldar.impossiblequiz.png",
+            landmarksquiz: "https://leasol.github.io/icons/com.soldar.landmarksquiz.png",
+            logoquiz: "https://leasol.github.io/icons/com.soldar.logoquiz.png",
+            mindblowquiz: "https://leasol.github.io/icons/com.soldar.mindblow.png",
+            qetflix: "https://leasol.github.io/icons/com.soldar.qetflix.png",
+            steretypesquiz: "https://leasol.github.io/icons/com.soldar.stereotypequiz.png"
+        };
+
+
+        const iconImg = document.getElementById("quiz-icon");
+        iconImg.src = quizIcons[quizKey] || ""; // fallback if no icon
+        if (!quizIcons[quizKey]) iconImg.style.display = "none";
 
         async function getItems() {
             if (quiz.type === "categories") {
