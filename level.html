@@ -307,6 +307,9 @@
         const res = await fetch(catData.json);
         const data = await res.json();
         var items = Object.keys(data);
+        if (quizKey === "gotquiz") {
+          items = Object.entries(data).map(([key, value]) => `${value}_${key}`);
+        }
         if (quizKey === "actorquiz") { items = Object.keys(data).reverse(); }
         return { items: items, images: catData.images };
       }
@@ -387,7 +390,12 @@
 
         else {
           const img = document.createElement('img');
-          img.src = `${images}/${name}`;
+          if (quizKey == "gotquiz") {
+            img.src = `${images}/${name}.jpg`;
+          }
+          else {
+            img.src = `${images}/${name}`;
+          }
 
           if (quizKey === "actorquiz" && category === "Up Close & Personal") {
             img.classList.add("uclose");
@@ -398,6 +406,7 @@
 
         const overlay = document.createElement('div');
         overlay.className = "overlay";
+
         overlay.textContent = name
           .split("_")[0]
           .split(" ")
