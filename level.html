@@ -308,7 +308,7 @@
         const data = await res.json();
         var items = Object.keys(data);
         if (quizKey === "gotquiz") {
-          items = Object.entries(data).map(([key, value]) => `${value}_${key}`);
+          items = Object.entries(data).map(([key, value]) => `${value}`);
         }
         if (quizKey === "actorquiz") { items = Object.keys(data).reverse(); }
         return { items: items, images: catData.images };
