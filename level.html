@@ -85,6 +85,33 @@
       opacity: 1;
     }
 
+    /* --- ADDED: Fullscreen Modal Styles --- */
+    #fullscreen-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      cursor: zoom-out;
+    }
+
+    #fullscreen-overlay img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    #fullscreen-overlay span {
+      font-size: 15rem;
+    }
+
     @media(max-width:700px) {
       .grid {
         grid-template-columns: repeat(2, 1fr);
@@ -103,6 +130,10 @@
 <body>
   <h1 id="level-title"></h1>
   <div class="grid" id="logo-grid"></div>
+
+  <div id="fullscreen-overlay" onclick="this.style.display='none'">
+    <div id="fullscreen-content"></div>
+  </div>
 
   <script>
     /* ------------------------------------
@@ -304,7 +335,7 @@
 
       if (quiz.type === "categories") {
         const catData = quiz.categories[category || Object.keys(quiz.categories)[0]];
-        const res = await fetch(catData.json);  
+        const res = await fetch(catData.json);
         const data = await res.json();
         var items = Object.keys(data);
         if (quizKey === "gotquiz") {
@@ -351,6 +382,27 @@
       levelItems.forEach(name => {
         const container = document.createElement('div');
         container.className = "logo-container";
+
+        // ADDED: Logic to show fullscreen on click
+        container.onclick = () => {
+          const overlay = document.getElementById('fullscreen-overlay');
+          const content = document.getElementById('fullscreen-content');
+          overlay.style.display = 'flex';
+
+          // Clear previous content
+          content.innerHTML = '';
+
+          if (images === "emoji") {
+            const span = document.createElement('span');
+            span.textContent = name.split("_")[1];
+            content.appendChild(span);
+          } else {
+            const img = document.createElement('img');
+            // Find the image source from the child of the clicked container
+            img.src = container.querySelector('img').src;
+            content.appendChild(img);
+          }
+        };
 
         if (images === "emoji") {
           const span = document.createElement('span');
