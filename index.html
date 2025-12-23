@@ -158,8 +158,22 @@
       /* forces square */
       object-fit: cover;
       /* prevents stretching */
-      border-radius: 16px;
       /* rounded corners */
+
+    }
+
+    .quiziverse-header {
+      display: flex;
+      align-items: center;
+      /* vertical alignment */
+      gap: 12px;
+      /* space between image and text */
+    }
+
+    .quizi-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 16px;
 
     }
   </style>
@@ -181,9 +195,11 @@
 
 
 
-  <h2>Quiziverse: Quiz Apps</h2>
-  <!-- QUIZIVERSE SECTION -->
-  <img src="icons/com.soldar.quiziverse.png" alt="Lea Sol" class="lea-icon" />
+  <div class="quiziverse-header">
+    <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" class="quizi-icon" />
+    <h2>Quiziverse: Quiz Apps</h2>
+  </div>
+
   <div class="apps-grid" id="quizGrid"></div>
 
   <!-- APPS SECTION -->
