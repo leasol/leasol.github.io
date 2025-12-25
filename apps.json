@@ -135,7 +135,7 @@
         },
         {
             "id": "com.soldar.soccerquiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Soccer Quiz",
             "app_store_url": "https://apps.apple.com/app/id6756229243",
