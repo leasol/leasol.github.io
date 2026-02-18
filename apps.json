@@ -4,7 +4,7 @@
     "apps": [
         {
             "id": "com.soldar.famousquiz",
-            "update": true,
+            "update": false,
             "quiz": true,
             "name": "Quiz: Celebs Game 2025",
             "app_store_url": "https://apps.apple.com/app/id6745571998",
@@ -24,7 +24,7 @@
             "id": "com.soldar.stereotypequiz",
             "update": false,
             "quiz": true,
-            "name": "Quiz: What Country Am I From?",
+            "name": "World Faces",
             "app_store_url": "https://apps.apple.com/app/id6747153287",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.stereotypequiz",
             "answers": "steretypesquiz"
@@ -94,7 +94,7 @@
         },
         {
             "id": "com.soldar.babysitters",
-            "update": true,
+            "update": false,
             "quiz": false,
             "name": "Babysitter - Find Help Nearby",
             "app_store_url": "https://apps.apple.com/app/id6745571892",
@@ -102,7 +102,7 @@
         },
         {
             "id": "com.soldar.famous_graves",
-            "update": true,
+            "update": false,
             "quiz": false,
             "name": "Who's Dead?",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famous_graves",
@@ -110,7 +110,7 @@
         },
         {
             "id": "com.soldar.actorsid",
-            "update": true,
+            "update": false,
             "quiz": false,
             "name": "Actor ID",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.actorsid",
@@ -118,7 +118,7 @@
         },
         {
             "id": "com.soldar.horoscope",
-            "update": true,
+            "update": false,
             "quiz": false,
             "name": "Daily Horoscope",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.horoscope",
@@ -153,7 +153,7 @@
         },
         {
             "id": "com.soldar.celebritybirthdays",
-            "update": true,
+            "update": false,
             "quiz": false,
             "name": "Celebrity Birthdays",
             "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.celebritybirthdays",
