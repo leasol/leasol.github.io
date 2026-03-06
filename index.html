@@ -5,115 +5,178 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lea Sol Apps</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f4f7fa, #e9eff5);
-      color: #1a1a1a;
+      background:
+        radial-gradient(circle at top left, rgba(113, 89, 255, 0.10), transparent 30%),
+        radial-gradient(circle at top right, rgba(0, 153, 255, 0.10), transparent 28%),
+        linear-gradient(180deg, #f7f9fc 0%, #eef3f9 100%);
+      color: #121212;
       overflow-x: hidden;
     }
 
-    h1,
-    h2 {
+    .container {
+      width: min(1280px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 48px 0 24px;
       text-align: center;
-      color: #0a0a0a;
-      position: relative;
-      z-index: 1;
     }
 
     h1 {
-      font-size: 3.5em;
-      margin-top: 40px;
+      font-size: clamp(2.4rem, 5vw, 4.2rem);
+      margin: 0 0 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #0d1320;
     }
 
-    h2 {
-      font-size: 2.4em;
-      margin-top: 60px;
-      margin-bottom: 20px;
+    .lea-icon {
+      display: block;
+      margin: 0 auto 24px;
+      width: 170px;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 34px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+      border: 4px solid rgba(255, 255, 255, 0.7);
     }
 
-    p.about {
+    .about {
       text-align: center;
-      font-size: 1.2em;
-      max-width: 800px;
-      margin: 0 auto 20px auto;
-      z-index: 1;
-      position: relative;
+      font-size: 1.14rem;
+      line-height: 1.8;
+      max-width: 850px;
+      margin: 0 auto;
+      color: #384252;
     }
 
     .contact-section {
+      margin: 34px auto 14px;
       text-align: center;
-      margin-bottom: 40px;
     }
 
     .contact-section p {
-      font-size: 1.2em;
-      max-width: 600px;
-      margin: 0 auto 20px;
-      color: #333;
+      font-size: 1.08rem;
+      max-width: 620px;
+      margin: 0 auto 18px;
+      color: #4d5868;
     }
 
     .contact-button {
-      display: inline-block;
-      background: #007bff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #0b84ff, #0062ff);
       color: white;
-      font-size: 1.1em;
-      font-weight: bold;
+      font-size: 1.05rem;
+      font-weight: 700;
       padding: 14px 28px;
-      border-radius: 12px;
+      border-radius: 14px;
       text-decoration: none;
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-      transition: background 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 10px 26px rgba(0, 98, 255, 0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .contact-button:hover {
-      background: #0056b3;
-      transform: scale(1.05);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(0, 98, 255, 0.32);
+    }
+
+    .section-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 28px;
+      padding: 32px 24px 24px;
+      box-shadow: 0 14px 34px rgba(30, 41, 59, 0.07);
+      margin: 34px 0;
+    }
+
+    .quiziverse-header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .quizi-icon {
+      width: 110px;
+      height: 110px;
+      border-radius: 28px;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 14px;
+      box-shadow: 0 12px 28px rgba(110, 0, 255, 0.22);
+    }
+
+    h2 {
+      text-align: center;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      margin: 0;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #101828;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      max-width: 860px;
+      margin: 14px auto 8px;
+      font-size: 1.08rem;
+      line-height: 1.8;
+      color: #4b5565;
     }
 
     .apps-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      justify-content: center;
-      padding: 0 20px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      padding-top: 12px;
     }
 
     .app-card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-      padding: 20px;
-      width: 250px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+      border-radius: 22px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      padding: 22px 18px 20px;
       text-align: center;
-      transition: transform 0.2s ease;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      border: 1px solid rgba(15, 23, 42, 0.05);
     }
 
     .app-card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-6px);
+      box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
     }
 
     .app-icon {
       width: 96px;
       height: 96px;
       object-fit: cover;
-      border-radius: 16px;
-      margin-bottom: 15px;
+      border-radius: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
     }
 
     .app-name {
-      font-size: clamp(0.9em, 2vw, 1.1em);
-      /* Automatically scales between 0.9em and 1.1em based on viewport */
-      font-weight: 600;
-      margin-bottom: 12px;
-      white-space: nowrap;
-      /* Prevent wrapping */
-      overflow: hidden;
-      /* Hide overflow text */
-      text-overflow: ellipsis;
-      /* Add "..." if too long */
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #18202d;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.35;
     }
 
     .store-buttons {
@@ -125,93 +188,112 @@
     }
 
     .store-buttons img {
-      width: 140px;
+      width: 130px;
       height: auto;
-      border-radius: 8px;
+      border-radius: 10px;
+      display: block;
     }
 
     .answers-btn {
-      margin-top: 12px;
+      margin-top: 14px;
       display: inline-block;
-      padding: 10px 18px;
-      background: #6e00ff;
+      padding: 11px 18px;
+      background: linear-gradient(135deg, #7b1fff, #5a00d6);
       color: white;
-      border-radius: 10px;
-      font-weight: bold;
+      border-radius: 12px;
+      font-weight: 700;
       text-decoration: none;
-      box-shadow: 0 4px 12px rgba(110, 0, 255, 0.3);
-      transition: transform 0.2s ease, background 0.2s ease;
+      box-shadow: 0 8px 18px rgba(90, 0, 214, 0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .answers-btn:hover {
-      transform: scale(1.05);
-      background: #5300c7;
+      transform: scale(1.04);
+      box-shadow: 0 12px 22px rgba(90, 0, 214, 0.30);
     }
 
-    .lea-icon {
-      display: block;
-      margin: 20px auto;
-      /* centers horizontally */
-      width: 140px;
-      /* control size */
-      height: 140px;
-      /* forces square */
-      object-fit: cover;
-      /* prevents stretching */
-      /* rounded corners */
-
+    .footer-space {
+      height: 20px;
     }
 
-    .quiziverse-header {
-      display: flex;
-      align-items: center;
-      /* vertical alignment */
-      gap: 12px;
-      /* space between image and text */
-    }
+    @media (max-width: 640px) {
+      .section-card {
+        padding: 24px 16px 18px;
+        border-radius: 22px;
+      }
 
-    .quizi-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 16px;
+      .lea-icon {
+        width: 140px;
+        height: 140px;
+        border-radius: 28px;
+      }
 
+      .quizi-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 22px;
+      }
+
+      .store-buttons img {
+        width: 118px;
+      }
     }
   </style>
 </head>
 
 <body>
+  <div class="container">
+    <section class="hero">
+      <h1>Lea Sol Apps</h1>
+      <img src="icons/lea.png" alt="Lea Sol" class="lea-icon" />
 
-  <h1>Lea Sol Apps</h1>
-  <img src="icons/lea.png" alt="Lea Sol" class="lea-icon" />
-  <p class="about">
-    I'm Lea Sol Bokobza, a passionate mobile developer blending creativity and technology to craft smart,
-    engaging experiences. From puzzles to playful quizzes, I build apps that entertain and inspire.
-  </p>
+      <p class="about">
+        I’m Lea Sol Bokobza, a mobile developer who loves turning ideas into polished, playful experiences.
+        I build apps that mix creativity, design, and smart interaction — from addictive quizzes to useful
+        everyday tools made to entertain, surprise, and connect with people.
+      </p>
 
-  <div class="contact-section">
-    <p>Need help or found a bug? Send me a message and I’ll help personally.</p>
-    <a class="contact-button" href="mailto:SoldarCompany@gmail.com">✉️ Email Me</a>
+      <div class="contact-section">
+        <p>Need help, found a bug, or want to get in touch? Send me a message and I’ll personally get back to you.</p>
+        <a class="contact-button" href="mailto:SoldarCompany@gmail.com">✉️ Email Me</a>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="quiziverse-header">
+        <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" class="quizi-icon" />
+        <h2>Quiziverse</h2>
+        <p class="section-subtitle">
+          Welcome to Quiziverse — a growing universe of quiz games built for every kind of curiosity.
+          From logos, celebrities, flags, landmarks, cars, animals, emojis, and beyond, each app brings
+          its own twist, challenge, and style. Whether you want fast fun, tricky trivia, or something
+          delightfully unexpected, Quiziverse is all about discovering new categories and testing what you know.
+        </p>
+      </div>
+
+      <div class="apps-grid" id="quizGrid"></div>
+    </section>
+
+    <section class="section-card">
+      <h2>More Apps</h2>
+      <p class="section-subtitle">
+        A collection of other apps I’ve built — practical, playful, and designed to make everyday moments a little more interesting.
+      </p>
+      <div class="apps-grid" id="appsGrid"></div>
+    </section>
+
+    <div class="footer-space"></div>
   </div>
-
-
-
-  <div class="quiziverse-header">
-    <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" class="quizi-icon" />
-    <h2>Quiziverse: Quiz Apps</h2>
-  </div>
-
-  <div class="apps-grid" id="quizGrid"></div>
-
-  <!-- APPS SECTION -->
-  <h2>Other Apps</h2>
-  <div class="apps-grid" id="appsGrid"></div>
 
   <script>
-    const quizzesList = [
-      "logoquiz", "actorquiz", "carlogoquiz", "emojiquiz", "flagsquiz",
-      "impossiblequiz", "landmarksquiz", "mindblowquiz", "pokemonquiz",
-      "steretypesquiz", "qetflix"
-    ];
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
 
     async function loadApps() {
       try {
@@ -382,13 +464,19 @@
         const quizGrid = document.getElementById("quizGrid");
         const appsGrid = document.getElementById("appsGrid");
 
-        data.apps.forEach(app => {
+        quizGrid.innerHTML = "";
+        appsGrid.innerHTML = "";
+
+        const randomizedApps = shuffleArray(data.apps);
+
+        randomizedApps.forEach(app => {
           const card = document.createElement("div");
           card.className = "app-card";
 
           const icon = document.createElement("img");
           icon.src = "https://leasol.github.io/icons/" + app.id + ".png";
           icon.className = "app-icon";
+          icon.alt = app.name;
           card.appendChild(icon);
 
           const name = document.createElement("div");
@@ -403,8 +491,12 @@
             const gp = document.createElement("a");
             gp.href = app.google_play_url;
             gp.target = "_blank";
+            gp.rel = "noopener noreferrer";
+
             const gpImg = document.createElement("img");
             gpImg.src = "https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg";
+            gpImg.alt = "Get it on Google Play";
+
             gp.appendChild(gpImg);
             buttons.appendChild(gp);
           }
@@ -413,27 +505,31 @@
             const ios = document.createElement("a");
             ios.href = app.app_store_url;
             ios.target = "_blank";
+            ios.rel = "noopener noreferrer";
+
             const iosImg = document.createElement("img");
             iosImg.src = "https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg";
+            iosImg.alt = "Download on the App Store";
+
             ios.appendChild(iosImg);
             buttons.appendChild(ios);
           }
 
           card.appendChild(buttons);
 
+          if (app.quiz && app.answers) {
+            const ans = document.createElement("a");
+            ans.className = "answers-btn";
+            ans.href = `https://leasol.github.io/levels.html?quiz=${app.answers}`;
+            ans.textContent = "View Answers";
+            card.appendChild(ans);
+          }
+
           if (app.quiz) {
-            if (app.answers) {
-              const ans = document.createElement("a");
-              ans.className = "answers-btn";
-              ans.href = `https://leasol.github.io/levels.html?quiz=${app.answers}`;
-              ans.textContent = "View Answers";
-              card.appendChild(ans);
-            }
             quizGrid.appendChild(card);
           } else {
             appsGrid.appendChild(card);
           }
-
         });
       } catch (err) {
         console.error(err);
@@ -442,7 +538,6 @@
 
     loadApps();
   </script>
-
 </body>
 
 </html>
