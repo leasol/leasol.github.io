@@ -17,10 +17,32 @@
       transition: background 0.5s ease;
     }
 
+    .back-btn {
+      position: relative;
+      display: inline-block;
+      padding: 14px 28px;
+      margin-bottom: 25px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      font-size: 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+      transition: 0.3s ease;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+    }
+
     h1 {
       color: #fff;
       margin-bottom: 40px;
       text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+      text-align: center;
     }
 
     .grid {
@@ -79,13 +101,13 @@
       opacity: 0;
       transition: opacity 0.3s;
       font-size: 14px;
+      z-index: 2;
     }
 
     .logo-container:hover .overlay {
       opacity: 1;
     }
 
-    /* --- ADDED: Fullscreen Modal Styles --- */
     #fullscreen-overlay {
       display: none;
       position: fixed;
@@ -98,11 +120,22 @@
       justify-content: center;
       align-items: center;
       cursor: zoom-out;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #fullscreen-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+      max-height: 100%;
+      cursor: default;
     }
 
     #fullscreen-overlay img {
-      max-width: 90%;
-      max-height: 90%;
+      max-width: 90vw;
+      max-height: 90vh;
       object-fit: contain;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
@@ -110,6 +143,140 @@
 
     #fullscreen-overlay span {
       font-size: 15rem;
+      line-height: 1;
+    }
+
+    .compare-stage {
+      --split: 50%;
+      position: relative;
+      width: min(90vw, 1200px);
+      height: min(90vh, 800px);
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
+      background: #111;
+      cursor: default;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .compare-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 14px;
+      box-shadow: none !important;
+      max-width: none !important;
+      max-height: none !important;
+      background: #111;
+      pointer-events: none;
+    }
+
+    .compare-before {
+      z-index: 1;
+    }
+
+    .compare-after {
+      z-index: 2;
+      clip-path: inset(0 calc(100% - var(--split)) 0 0);
+      -webkit-clip-path: inset(0 calc(100% - var(--split)) 0 0);
+    }
+
+    .compare-divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: var(--split);
+      width: 2px;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 4;
+      pointer-events: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.55);
+      transform: translateX(-50%);
+    }
+
+    .compare-handle {
+      position: absolute;
+      top: 50%;
+      left: var(--split);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .compare-handle::before,
+    .compare-handle::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      border-top: 3px solid #333;
+      border-right: 3px solid #333;
+      transform-origin: center;
+    }
+
+    .compare-handle::before {
+      left: 14px;
+      transform: translateY(-50%) rotate(-135deg);
+    }
+
+    .compare-handle::after {
+      right: 14px;
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .compare-range {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      z-index: 6;
+      cursor: ew-resize;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+    }
+
+    .compare-label {
+      position: absolute;
+      top: 18px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      z-index: 7;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+    }
+
+    .compare-label.before {
+      left: 18px;
+    }
+
+    .compare-label.after {
+      right: 18px;
+    }
+
+    .fullscreen-loading {
+      color: #fff;
+      font-size: 24px;
+      text-align: center;
+      padding: 20px;
     }
 
     @media(max-width:700px) {
@@ -117,28 +284,37 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
       }
+
+      .compare-handle {
+        width: 48px;
+        height: 48px;
+      }
     }
 
     @media(max-width:450px) {
       .grid {
         grid-template-columns: 1fr;
       }
+
+      .compare-label {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
     }
   </style>
 </head>
 
 <body>
+  <a href="javascript:history.back()" class="back-btn">← Back</a>
+
   <h1 id="level-title"></h1>
   <div class="grid" id="logo-grid"></div>
 
-  <div id="fullscreen-overlay" onclick="this.style.display='none'">
+  <div id="fullscreen-overlay">
     <div id="fullscreen-content"></div>
   </div>
 
   <script>
-    /* ------------------------------------
-       THEMES (same as category page)
-    -------------------------------------- */
     const themes = {
       actorquiz: {
         bg: "linear-gradient(to right, #142e5e, #3562cc)",
@@ -152,6 +328,13 @@
         btn: "linear-gradient(145deg, #3d8b5a, #4fae72)",
         btnText: "#ffffff",
         hover: "0 0 25px #4fae72"
+      },
+
+      dragonquiz: {
+        bg: "linear-gradient(to right, #ff6a00, #ffb300)",
+        btn: "linear-gradient(145deg, #ff8c00, #ffd54f)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #ffd54f"
       },
 
       emojiquiz: {
@@ -218,11 +401,12 @@
       },
 
       soccerquiz: {
-        bg: "linear-gradient(to right, #003300, #00cc66)",   // deep green → bright green
-        btn: "linear-gradient(145deg, #00aa55, #66ffcc)",    // medium green → mint
-        btnText: "#ffffff",                                   // white text
-        hover: "0 0 25px #00ff99"                             // neon green glow
+        bg: "linear-gradient(to right, #003300, #00cc66)",
+        btn: "linear-gradient(145deg, #00aa55, #66ffcc)",
+        btnText: "#ffffff",
+        hover: "0 0 25px #00ff99"
       },
+
       gotquiz: {
         bg: "linear-gradient(to right, #141414, #000000)",
         btn: "linear-gradient(145deg, #E50914, #B81D24)",
@@ -231,71 +415,195 @@
       },
     };
 
-
-    /* ------------------------------------
-       QUIZ DATA
-    -------------------------------------- */
     const quizzes = {
-      logoquiz: { name: "Logo Quiz", json: "https://leasol.github.io/logoquiz/json/sorted.json", images: "https://leasol.github.io/logoquiz/proced/", type: "list" },
+      logoquiz: {
+        name: "Logo Quiz",
+        json: "./logoquiz/json/sorted.json",
+        images: "./logoquiz/proced",
+        type: "list"
+      },
 
       actorquiz: {
-        name: "Actor Quiz", type: "categories", categories: {
-          "Next Gen Collection": { json: "https://leasol.github.io/actorquiz/json/newactors.json", images: "https://leasol.github.io/actorquiz/toons", type: "dict" },
-          "Childhood Pictures": { json: "https://leasol.github.io/actorquiz/json/celebrities.json", images: "https://leasol.github.io/actorquiz/left", type: "dict" },
-          "Up Close & Personal": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/originals_scaled", type: "dict" },
-          "Legacy Collection": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/toons_scaled", type: "dict" }
+        name: "Actor Quiz",
+        type: "categories",
+        categories: {
+          "Next Gen Collection": {
+            json: "./actorquiz/json/newactors.json",
+            images: "./actorquiz/toons",
+            before: "./actorquiz/proced",
+            type: "dict"
+          },
+          "Childhood Pictures": {
+            json: "./actorquiz/json/celebrities.json",
+            images: "./actorquiz/left",
+            before: "./actorquiz/right",
+            type: "dict"
+          },
+          "Up Close & Personal": {
+            json: "./actorquiz/json/actors.json",
+            images: "./actorquiz/originals_scaled",
+            before: "./actorquiz/toons_scaled",
+            type: "dict"
+          },
+          "Legacy Collection": {
+            json: "./actorquiz/json/actors.json",
+            images: "./actorquiz/toons_scaled",
+            before: "./actorquiz/originals_scaled",
+            type: "dict"
+          }
         }
       },
 
-      carlogoquiz: { name: "Car Logo Quiz", json: "https://leasol.github.io/carlogoquiz/json/sorted.json", images: "https://leasol.github.io/carlogoquiz/originals_scaled", type: "list" },
+      dragonquiz: {
+        name: "Dragon Quiz",
+        type: "categories",
+        categories: {
+          "Dragon Ball": {
+            json: "./dragonquiz/dragon_jsons/Dragon Ball.json",
+            images: "./dragonquiz/Dragon Ball/Gemini",
+            before: "./dragonquiz/Dragon Ball/dragon_ball",
+            type: "list"
+          },
+          "Dragon Ball Z": {
+            json: "./dragonquiz/dragon_jsons/Dragon Ball Z.json",
+            images: "./dragonquiz/Dragon Ball Z/Gemini",
+            before: "./dragonquiz/Dragon Ball Z/dragon_ball_z",
+            type: "list"
+          },
+          "Dragon Ball GT": {
+            json: "./dragonquiz/dragon_jsons/Dragon Ball GT.json",
+            images: "./dragonquiz/Dragon Ball GT/Gemini",
+            before: "./dragonquiz/Dragon Ball GT/dragon_ball_gt",
+            type: "list"
+          },
+          "Dragon Ball Super": {
+            json: "./dragonquiz/dragon_jsons/Dragon Ball Super.json",
+            images: "./dragonquiz/Dragon Ball Super/Gemini",
+            before: "./dragonquiz/Dragon Ball Super/dragon_ball_super",
+            type: "list"
+          },
+          "Dragon Ball Daima": {
+            json: "./dragonquiz/dragon_jsons/Dragon Ball Daima.json",
+            images: "./dragonquiz/Dragon Ball Daima/Gemini",
+            before: "./dragonquiz/Dragon Ball Daima/dragon_ball_daima",
+            type: "list"
+          },
+          "Dragon Ball Heroes": {
+            json: "./dragonquiz/dragon_jsons/Dragon Ball Heroes.json",
+            images: "./dragonquiz/Dragon Ball Heroes/Gemini",
+            before: "./dragonquiz/Dragon Ball Heroes/sdbh_characters",
+            type: "list"
+          },
+          "Dragon Ball Games": {
+            json: "./dragonquiz/dragon_jsons/Dragon Ball Games.json",
+            images: "./dragonquiz/Dragon Ball Games/Gemini",
+            before: "./dragonquiz/Dragon Ball Games/dragon_games_characters",
+            type: "list"
+          }
+        }
+      },
 
-      emojiquiz: { name: "Emoji Quiz", json: "https://leasol.github.io/emojiquiz/json/sorted.json", images: "emoji", type: "dict" },
+      carlogoquiz: {
+        name: "Car Logo Quiz",
+        json: "./carlogoquiz/json/sorted.json",
+        images: "./carlogoquiz/originals_scaled",
+        type: "list"
+      },
 
-      flagsquiz: { name: "Flags Quiz", json: "https://leasol.github.io/flagsquiz/json/sorted.json", images: "https://leasol.github.io/flagsquiz/toons_scaled", type: "list" },
+      emojiquiz: {
+        name: "Emoji Quiz",
+        json: "./emojiquiz/json/sorted.json",
+        images: "emoji",
+        type: "dict"
+      },
 
-      impossiblequiz: { name: "Impossible Quiz", json: "https://leasol.github.io/impossiblequiz/json/sorted.json", images: "https://leasol.github.io/impossiblequiz/originals_scaled", type: "list" },
+      flagsquiz: {
+        name: "Flags Quiz",
+        json: "./flagsquiz/json/sorted.json",
+        images: "./flagsquiz/toons_scaled",
+        type: "list"
+      },
 
-      landmarksquiz: { name: "Landmarks Quiz", json: "https://leasol.github.io/landmarksquiz/json/sorted.json", images: "https://leasol.github.io/landmarksquiz/originals_scaled", type: "list" },
+      impossiblequiz: {
+        name: "Impossible Quiz",
+        json: "./impossiblequiz/json/sorted.json",
+        images: "./impossiblequiz/originals_scaled",
+        type: "list"
+      },
 
-      mindblowquiz: { name: "Mindblow Quiz", json: "https://leasol.github.io/mindblowquiz/json/sorted.json", images: "https://leasol.github.io/mindblowquiz/toons_scaled", type: "list" },
+      landmarksquiz: {
+        name: "Landmarks Quiz",
+        json: "./landmarksquiz/json/sorted.json",
+        images: "./landmarksquiz/originals_scaled",
+        type: "list"
+      },
 
-      pokemonquiz: { name: "Pokemon Quiz", json: "https://leasol.github.io/pokemonquiz/json/sorted.json", images: "https://leasol.github.io/pokemonquiz/toons_scaled", type: "generations", counts: [151, 100, 135, 107, 156, 72, 88, 89, 120] },
+      mindblowquiz: {
+        name: "Mindblow Quiz",
+        json: "./mindblowquiz/json/sorted.json",
+        images: "./mindblowquiz/toons_scaled",
+        before: "/actorquiz/originals_scaled",
+        type: "list"
+      },
 
-      steretypesquiz: { name: "Stereotypes Quiz", json: "https://leasol.github.io/steretypesquiz/json/sorted.json", images: "https://leasol.github.io/steretypesquiz/toons1", type: "list" },
+      pokemonquiz: {
+        name: "Pokemon Quiz",
+        json: "./pokemonquiz/json/sorted.json",
+        images: "./pokemonquiz/toons_scaled",
+        type: "generations",
+        counts: [151, 100, 135, 107, 156, 72, 88, 89, 120]
+      },
+
+      steretypesquiz: {
+        name: "Stereotypes Quiz",
+        json: "./steretypesquiz/json/sorted.json",
+        images: "./steretypesquiz/toons1",
+        type: "list"
+      },
 
       qetflix: {
         name: "Qetflix",
-        json: "https://leasol.github.io/netflix_titles_backup/ordered_titles.json",
-        images: "https://leasol.github.io/netflix_titles_backup",
+        json: "./netflix_titles_backup/ordered_titles.json",
+        images: "./netflix_titles_backup",
         type: "netflix"
       },
-      soccerquiz: { name: "Soccer Quiz", json: "https://leasol.github.io/soccerquiz/json/sorted.json", images: "https://leasol.github.io/soccerquiz/proced", type: "list" },
-      gotquiz: {
-        name: "Quiz of Thrones", type: "categories", categories: {
-          "Game of Thrones": { json: "https://leasol.github.io/gotquiz/json/got.json", images: "https://leasol.github.io/gotquiz/got", type: "dict" },
-          "House of the Dragon": { json: "https://leasol.github.io/gotquiz/json/hotd.json", images: "https://leasol.github.io/gotquiz/hotd", type: "dict" },
-        }
+
+      soccerquiz: {
+        name: "Soccer Quiz",
+        json: "./soccerquiz/json/sorted.json",
+        images: "./soccerquiz/proced",
+        type: "list"
       },
 
+      gotquiz: {
+        name: "Quiz of Thrones",
+        type: "categories",
+        categories: {
+          "Game of Thrones": {
+            json: "./gotquiz/json/got.json",
+            images: "./gotquiz/got",
+            type: "dict"
+          },
+          "House of the Dragon": {
+            json: "./gotquiz/json/hotd.json",
+            images: "./gotquiz/hotd",
+            type: "dict"
+          }
+        }
+      }
     };
 
-    /* ------------------------------------
-       READ URL PARAMETERS
-    -------------------------------------- */
     const urlParams = new URLSearchParams(window.location.search);
     const quizKey = urlParams.get('quiz');
-    let levelNum = parseInt(urlParams.get('level'));
+    const levelNum = parseInt(urlParams.get('level'));
     const generation = parseInt(urlParams.get('generation'));
     const category = urlParams.get('category');
 
     if (!quizKey || !quizzes[quizKey] || !levelNum) {
-      document.body.innerHTML = "<h2>Invalid quiz or level</h2>";
-      throw new Error("Invalid quiz/level");
+      document.body.innerHTML = "<h2 style='color:white'>Invalid quiz or level</h2>";
+      throw new Error("Invalid quiz or level");
     }
 
-    /* ------------------------------------
-       APPLY THEME
-    -------------------------------------- */
     if (themes[quizKey]) {
       document.body.style.background = themes[quizKey].bg;
 
@@ -314,35 +622,362 @@
       document.head.appendChild(style);
     }
 
-    /* ------------------------------------
-       SET PAGE TITLE
-    -------------------------------------- */
     const quiz = quizzes[quizKey];
     document.getElementById('level-title').textContent =
-      `${quiz.name} - Level ${levelNum}` + (category ? ` - ${category}` : "");
+      `${quiz.name} - Level ${levelNum}` +
+      (generation ? ` - Generation ${generation}` : "") +
+      (category ? ` - ${category}` : "");
 
+    const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+    const fullscreenContent = document.getElementById('fullscreen-content');
 
-    /* ------------------------------------
-       LOAD ITEMS AND BUILD GRID
-    -------------------------------------- */
+    let isCompareDragging = false;
+    let suppressOverlayClick = false;
+
+    function closeFullscreen() {
+      fullscreenOverlay.style.display = 'none';
+      fullscreenContent.innerHTML = '';
+    }
+
+    fullscreenOverlay.addEventListener('click', () => {
+      if (isCompareDragging || suppressOverlayClick) {
+        suppressOverlayClick = false;
+        return;
+      }
+      closeFullscreen();
+    });
+
+    fullscreenContent.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    function normalizeName(name) {
+      return String(name).trim();
+    }
+
+    function stripExtension(filename) {
+      return String(filename).replace(/\.[^/.]+$/, "");
+    }
+
+    function encodePathPart(part) {
+      return encodeURIComponent(part).replace(/%2F/g, '/');
+    }
+
+    function prettifyName(name) {
+      return stripExtension(String(name))
+        .split("_")[0]
+        .split(" ")
+        .map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : w)
+        .join(" ");
+    }
+
+    function makeBaseImagePath(base, name, quizKey) {
+      const cleanName = normalizeName(name);
+
+      if (quizKey === "dragonquiz") {
+        return `${base}/${encodePathPart(stripExtension(cleanName))}`;
+      }
+
+      if (quizKey === "gotquiz") {
+        return `${base}/${encodePathPart(cleanName)}`;
+      }
+
+      return `${base}/${encodePathPart(cleanName)}`;
+    }
+
+    function getPreferredExtensions(name) {
+      const originalName = String(name).trim();
+      const originalExtMatch = originalName.match(/(\.[^/.]+)$/);
+      const originalExt = originalExtMatch ? originalExtMatch[1].toLowerCase() : null;
+      return originalExt ? [originalExt] : [];
+    }
+
+    function buildExtensionCandidates(preferredExtensions = [], allowExtensionless = false) {
+      const candidates = [
+        ...preferredExtensions,
+        ...(allowExtensionless ? [''] : []),
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.webp'
+      ];
+
+      return [...new Set(candidates)];
+    }
+
+    function resolveImageSrc(basePath, preferredExtensions = [], allowExtensionless = false) {
+      return new Promise((resolve, reject) => {
+        const extensions = buildExtensionCandidates(preferredExtensions, allowExtensionless);
+        let index = 0;
+        const probe = new Image();
+
+        const tryNext = () => {
+          if (index >= extensions.length) {
+            reject(new Error(`Could not resolve image for ${basePath}`));
+            return;
+          }
+
+          const ext = extensions[index];
+          probe.src = ext ? `${basePath}${ext}` : basePath;
+          index++;
+        };
+
+        probe.onload = () => resolve(probe.src);
+        probe.onerror = tryNext;
+        tryNext();
+      });
+    }
+
+    function loadImageWithFallback(img, basePath, preferredExtensions = [], allowExtensionless = false) {
+      const extensions = buildExtensionCandidates(preferredExtensions, allowExtensionless);
+      let index = 0;
+
+      const tryNext = () => {
+        if (index >= extensions.length) {
+          img.onerror = null;
+          img.removeAttribute("src");
+          img.style.background = "#ddd";
+          return;
+        }
+
+        const ext = extensions[index];
+        img.src = ext ? `${basePath}${ext}` : basePath;
+        index++;
+      };
+
+      img.onerror = tryNext;
+      tryNext();
+    }
+
+    function createFullscreenImage(src) {
+      const img = document.createElement('img');
+      img.src = src;
+      return img;
+    }
+
+    function createCompareSlider(beforeSrc, afterSrc) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'compare-stage';
+      wrapper.style.setProperty('--split', '50%');
+
+      const beforeImg = document.createElement('img');
+      beforeImg.className = 'compare-image compare-before';
+      beforeImg.src = beforeSrc;
+      beforeImg.alt = 'Before image';
+
+      const afterImg = document.createElement('img');
+      afterImg.className = 'compare-image compare-after';
+      afterImg.src = afterSrc;
+      afterImg.alt = 'After image';
+
+      const divider = document.createElement('div');
+      divider.className = 'compare-divider';
+
+      const handle = document.createElement('div');
+      handle.className = 'compare-handle';
+
+      const beforeLabel = document.createElement('div');
+      beforeLabel.className = 'compare-label before';
+      beforeLabel.textContent = 'Before';
+
+      const afterLabel = document.createElement('div');
+      afterLabel.className = 'compare-label after';
+      afterLabel.textContent = 'After';
+
+      const range = document.createElement('input');
+      range.className = 'compare-range';
+      range.type = 'range';
+      range.min = '0';
+      range.max = '100';
+      range.value = '50';
+      range.setAttribute('aria-label', 'Compare before and after image');
+
+      const updateSlider = (value) => {
+        const percent = Math.max(0, Math.min(100, Number(value)));
+        wrapper.style.setProperty('--split', `${percent}%`);
+        range.value = percent;
+      };
+
+      const updateFromPointer = (clientX) => {
+        const rect = wrapper.getBoundingClientRect();
+        const ratio = (clientX - rect.left) / rect.width;
+        const percent = Math.max(0, Math.min(100, ratio * 100));
+        updateSlider(percent);
+      };
+
+      let dragging = false;
+      let pointerId = null;
+
+      const stopDragging = () => {
+        if (!dragging) return;
+        dragging = false;
+        pointerId = null;
+        isCompareDragging = false;
+        suppressOverlayClick = true;
+
+        setTimeout(() => {
+          suppressOverlayClick = false;
+        }, 0);
+      };
+
+      const startDragging = (e) => {
+        dragging = true;
+        isCompareDragging = true;
+        suppressOverlayClick = false;
+
+        if (e.pointerId != null) {
+          pointerId = e.pointerId;
+          try {
+            range.setPointerCapture(e.pointerId);
+          } catch (_) { }
+        }
+
+        updateFromPointer(e.clientX);
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      range.addEventListener('input', () => updateSlider(range.value));
+
+      range.addEventListener('pointerdown', startDragging);
+
+      range.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        if (pointerId !== null && e.pointerId !== pointerId) return;
+        updateFromPointer(e.clientX);
+        e.preventDefault();
+        e.stopPropagation();
+      });
+
+      range.addEventListener('pointerup', (e) => {
+        if (pointerId !== null && e.pointerId !== pointerId) return;
+        e.preventDefault();
+        e.stopPropagation();
+        stopDragging();
+      });
+
+      range.addEventListener('pointercancel', () => {
+        stopDragging();
+      });
+
+      range.addEventListener('lostpointercapture', () => {
+        stopDragging();
+      });
+
+      wrapper.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      updateSlider(range.value);
+
+      wrapper.appendChild(beforeImg);
+      wrapper.appendChild(afterImg);
+      wrapper.appendChild(divider);
+      wrapper.appendChild(handle);
+      wrapper.appendChild(beforeLabel);
+      wrapper.appendChild(afterLabel);
+      wrapper.appendChild(range);
+
+      return wrapper;
+    }
+
+    async function openFullscreenForItem({
+      name,
+      images,
+      beforeImages,
+      existingImgSrc
+    }) {
+      fullscreenOverlay.style.display = 'flex';
+      fullscreenContent.innerHTML = '<div class="fullscreen-loading">Loading...</div>';
+
+      if (images === "emoji") {
+        fullscreenContent.innerHTML = '';
+        const span = document.createElement('span');
+        span.textContent = String(name).split("_")[1];
+        fullscreenContent.appendChild(span);
+        return;
+      }
+
+      try {
+        let afterSrc = existingImgSrc || '';
+        const allowExtensionless = quizKey === "actorquiz";
+
+        if (!afterSrc && quiz.type === "netflix") {
+          const encodedName = encodePathPart(name);
+          const moviePath = `${images}/movies/${encodedName}/backdrop`;
+          const tvPath = `${images}/tv/${encodedName}/backdrop`;
+
+          try {
+            afterSrc = await resolveImageSrc(moviePath, ['.jpg', '.jpeg', '.png', '.webp']);
+          } catch {
+            afterSrc = await resolveImageSrc(tvPath, ['.jpg', '.jpeg', '.png', '.webp']);
+          }
+        } else if (!afterSrc) {
+          const preferred = getPreferredExtensions(name);
+          const basePath = makeBaseImagePath(images, name, quizKey);
+          afterSrc = await resolveImageSrc(basePath, preferred, allowExtensionless);
+        }
+
+        fullscreenContent.innerHTML = '';
+
+        if (beforeImages) {
+          const beforeBasePath = makeBaseImagePath(beforeImages, name, quizKey);
+          const preferred = getPreferredExtensions(name);
+
+          try {
+            const beforeSrc = await resolveImageSrc(beforeBasePath, preferred, allowExtensionless);
+            fullscreenContent.appendChild(createCompareSlider(beforeSrc, afterSrc));
+            return;
+          } catch (err) {
+            console.warn("Before image not found, falling back to normal fullscreen image:", err);
+          }
+        }
+
+        fullscreenContent.appendChild(createFullscreenImage(afterSrc));
+      } catch (error) {
+        console.error("Failed to open fullscreen image:", error);
+        fullscreenContent.innerHTML = '<div class="fullscreen-loading">Failed to load image.</div>';
+      }
+    }
+
     async function getItems() {
-
       if (quiz.type === "netflix") {
         const res = await fetch(quiz.json);
         const data = await res.json();
-        return { items: data, images: quiz.images };
+        return { items: data, images: quiz.images, beforeImages: quiz.before || null };
       }
 
       if (quiz.type === "categories") {
-        const catData = quiz.categories[category || Object.keys(quiz.categories)[0]];
+        const selectedCategory = category || Object.keys(quiz.categories)[0];
+        const catData = quiz.categories[selectedCategory];
+
+        if (!catData) {
+          throw new Error(`Category not found: ${selectedCategory}`);
+        }
+
         const res = await fetch(catData.json);
         const data = await res.json();
-        var items = Object.keys(data);
-        if (quizKey === "gotquiz") {
-          items = Object.entries(data).map(([key, value]) => `${value}`);
+
+        let items;
+        if (catData.type === "dict") {
+          items = Object.keys(data);
+
+          if (quizKey === "gotquiz") {
+            items = Object.entries(data).map(([key, value]) => `${value}`);
+          }
+
+          if (quizKey === "actorquiz") {
+            items = Object.keys(data).reverse();
+          }
+        } else {
+          items = data;
         }
-        if (quizKey === "actorquiz") { items = Object.keys(data).reverse(); }
-        return { items: items, images: catData.images };
+
+        return {
+          items,
+          images: catData.images,
+          beforeImages: catData.before || null
+        };
       }
 
       if (quiz.type === "generations") {
@@ -350,29 +985,41 @@
         const data = await res.json();
         const counts = quiz.counts;
         const generationIndex = generation - 1;
+
+        if (generationIndex < 0 || generationIndex >= counts.length) {
+          throw new Error("Invalid generation");
+        }
+
         const offset = counts.slice(0, generationIndex).reduce((a, b) => a + b, 0);
         const genCount = counts[generationIndex];
         const genItems = data.slice(offset, offset + genCount);
-        return { items: genItems, images: quiz.images };
+
+        return {
+          items: genItems,
+          images: quiz.images,
+          beforeImages: quiz.before || null
+        };
       }
 
       if (quiz.type === "dict") {
         const res = await fetch(quiz.json);
         const data = await res.json();
+
         return {
           items: quizKey === 'emojiquiz'
             ? Object.entries(data).map(([k, v]) => `${k}_${v}`)
             : Object.keys(data),
-          images: quiz.images
+          images: quiz.images,
+          beforeImages: quiz.before || null
         };
       }
 
       const res = await fetch(quiz.json);
       const data = await res.json();
-      return { items: data, images: quiz.images };
+      return { items: data, images: quiz.images, beforeImages: quiz.before || null };
     }
 
-    getItems().then(({ items, images }) => {
+    getItems().then(({ items, images, beforeImages }) => {
       const grid = document.getElementById('logo-grid');
 
       const start = (levelNum - 1) * 12;
@@ -383,31 +1030,20 @@
         const container = document.createElement('div');
         container.className = "logo-container";
 
-        // ADDED: Logic to show fullscreen on click
         container.onclick = () => {
-          const overlay = document.getElementById('fullscreen-overlay');
-          const content = document.getElementById('fullscreen-content');
-          overlay.style.display = 'flex';
-
-          // Clear previous content
-          content.innerHTML = '';
-
-          if (images === "emoji") {
-            const span = document.createElement('span');
-            span.textContent = name.split("_")[1];
-            content.appendChild(span);
-          } else {
-            const img = document.createElement('img');
-            // Find the image source from the child of the clicked container
-            img.src = container.querySelector('img').src;
-            content.appendChild(img);
-          }
+          const existingImg = container.querySelector('img');
+          openFullscreenForItem({
+            name,
+            images,
+            beforeImages,
+            existingImgSrc: existingImg && existingImg.src ? existingImg.src : ''
+          });
         };
 
         if (images === "emoji") {
           const span = document.createElement('span');
           span.className = "emoji";
-          const emojiText = name.split("_")[1];
+          const emojiText = String(name).split("_")[1];
           span.textContent = emojiText;
 
           let fontSize = 80;
@@ -416,13 +1052,12 @@
           }
           span.style.fontSize = fontSize + "px";
           container.appendChild(span);
-        }
-
-        else if (quiz.type === "netflix") {
+        } else if (quiz.type === "netflix") {
           const img = document.createElement('img');
+          const encodedName = encodePathPart(name);
 
-          const moviePath = `${images}/movies/${name}/backdrop.jpg`;
-          const tvPath = `${images}/tv/${name}/backdrop.jpg`;
+          const moviePath = `${images}/movies/${encodedName}/backdrop.jpg`;
+          const tvPath = `${images}/tv/${encodedName}/backdrop.jpg`;
 
           img.src = moviePath;
 
@@ -432,25 +1067,39 @@
 
             img.onerror = () => {
               img.onerror = null;
-              img.src = "";
+              img.removeAttribute("src");
               img.style.background = "#ddd";
             };
           };
 
           container.appendChild(img);
-        }
-
-        else {
+        } else {
           const img = document.createElement('img');
-          if (quizKey == "gotquiz") {
-            img.src = `${images}/${name}.jpg`;
-          }
-          else {
-            img.src = `${images}/${name}`;
-          }
 
           if (quizKey === "actorquiz" && category === "Up Close & Personal") {
             img.classList.add("uclose");
+          }
+
+          if (quizKey === "dragonquiz" || quizKey === "gotquiz" || beforeImages) {
+            const preferred = getPreferredExtensions(name);
+            const basePath = makeBaseImagePath(images, name, quizKey);
+            const allowExtensionless = quizKey === "actorquiz";
+
+            loadImageWithFallback(
+              img,
+              basePath,
+              quizKey === "gotquiz"
+                ? ['.jpg', '.png', '.jpeg', '.webp']
+                : preferred,
+              allowExtensionless
+            );
+          } else {
+            img.src = `${images}/${encodePathPart(String(name).trim())}`;
+
+            img.onerror = () => {
+              img.removeAttribute("src");
+              img.style.background = "#ddd";
+            };
           }
 
           container.appendChild(img);
@@ -458,18 +1107,24 @@
 
         const overlay = document.createElement('div');
         overlay.className = "overlay";
-
-        overlay.textContent = name
-          .split("_")[0]
-          .split(" ")
-          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" ");
+        overlay.textContent = prettifyName(name);
         container.appendChild(overlay);
 
         grid.appendChild(container);
       });
+    }).catch(error => {
+      console.error("Failed to load level:", error);
+      document.getElementById('logo-grid').innerHTML = `
+        <div style="grid-column:1/-1;color:white;text-align:center;font-size:24px;">
+          Failed to load level data.<br><br>
+          Make sure you are serving the repo through a local server.<br>
+          Example:<br>
+          <code style="color:white;">python3 -m http.server 8000</code><br><br>
+          Then open:<br>
+          <code style="color:white;">http://localhost:8000/level.html?quiz=dragonquiz&category=Dragon%20Ball&level=1</code>
+        </div>
+      `;
     });
-
   </script>
 </body>
 

@@ -5,18 +5,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lea Sol Apps</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
   <style>
     * {
       box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(113, 89, 255, 0.10), transparent 30%),
-        radial-gradient(circle at top right, rgba(0, 153, 255, 0.10), transparent 28%),
+        radial-gradient(circle at top left, rgba(113, 89, 255, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(0, 153, 255, 0.16), transparent 26%),
+        radial-gradient(circle at center top, rgba(255, 0, 132, 0.08), transparent 30%),
         linear-gradient(180deg, #f7f9fc 0%, #eef3f9 100%);
       color: #121212;
       overflow-x: hidden;
@@ -28,69 +33,295 @@
     }
 
     .hero {
-      padding: 48px 0 24px;
-      text-align: center;
+      position: relative;
+      padding: 32px 0 28px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -120px -120px -40px -120px;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(123, 31, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 88% 10%, rgba(0, 98, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 50% -10%, rgba(255, 99, 132, 0.10), transparent 34%);
+      pointer-events: none;
+    }
+
+    .hero-shell {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 28px;
+      align-items: center;
+      min-height: 78vh;
+    }
+
+    .hero-left {
+      padding: 18px 0;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(10px);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #283244;
+      margin-bottom: 18px;
     }
 
     h1 {
-      font-size: clamp(2.4rem, 5vw, 4.2rem);
+      font-size: clamp(2.8rem, 6vw, 5.3rem);
+      line-height: 0.95;
       margin: 0 0 18px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
+      font-weight: 900;
+      letter-spacing: -0.05em;
       color: #0d1320;
+      max-width: 720px;
     }
 
-    .lea-icon {
-      display: block;
-      margin: 0 auto 24px;
-      width: 170px;
-      height: 170px;
-      object-fit: cover;
-      border-radius: 34px;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
-      border: 4px solid rgba(255, 255, 255, 0.7);
+    .hero-highlight {
+      background: linear-gradient(135deg, #7b1fff, #0062ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
     }
 
-    .about {
-      text-align: center;
-      font-size: 1.14rem;
+    .hero-subtitle {
+      font-size: 1.12rem;
       line-height: 1.8;
-      max-width: 850px;
-      margin: 0 auto;
+      max-width: 690px;
+      margin: 0 0 22px;
       color: #384252;
     }
 
-    .contact-section {
-      margin: 34px auto 14px;
-      text-align: center;
+    .hero-intro {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      max-width: 720px;
     }
 
-    .contact-section p {
-      font-size: 1.08rem;
-      max-width: 620px;
-      margin: 0 auto 18px;
-      color: #4d5868;
+    .hero-intro img {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      object-fit: cover;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.15);
+      flex-shrink: 0;
     }
 
+    .hero-intro p {
+      margin: 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    .primary-btn,
+    .secondary-btn,
     .contact-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      background: linear-gradient(135deg, #0b84ff, #0062ff);
-      color: white;
-      font-size: 1.05rem;
-      font-weight: 700;
-      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 14px 24px;
       border-radius: 14px;
       text-decoration: none;
-      box-shadow: 0 10px 26px rgba(0, 98, 255, 0.25);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
-    .contact-button:hover {
+    .primary-btn {
+      background: linear-gradient(135deg, #7b1fff, #0062ff);
+      color: white;
+      box-shadow: 0 14px 30px rgba(49, 46, 129, 0.22);
+    }
+
+    .primary-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 28px rgba(0, 98, 255, 0.32);
+      box-shadow: 0 18px 34px rgba(49, 46, 129, 0.28);
+    }
+
+    .secondary-btn {
+      background: rgba(255, 255, 255, 0.75);
+      color: #162032;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .secondary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stat-pill {
+      padding: 11px 15px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+      color: #263142;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .hero-right {
+      position: relative;
+      min-height: 560px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(91, 0, 214, 0.18), transparent 65%);
+      filter: blur(10px);
+      pointer-events: none;
+    }
+
+    .showcase-card {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10);
+      border-radius: 28px;
+      padding: 16px;
+    }
+
+    .showcase-main {
+      width: 300px;
+      transform: rotate(-7deg);
+      left: 10%;
+      top: 14%;
+    }
+
+    .showcase-secondary {
+      width: 250px;
+      transform: rotate(8deg);
+      right: 4%;
+      top: 6%;
+    }
+
+    .showcase-third {
+      width: 270px;
+      transform: rotate(-3deg);
+      right: 12%;
+      bottom: 8%;
+    }
+
+    .showcase-card img {
+      width: 100%;
+      display: block;
+      border-radius: 22px;
+      object-fit: cover;
+    }
+
+    .showcase-label {
+      margin-top: 12px;
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: #132033;
+      text-align: center;
+    }
+
+    .mini-floating-badge {
+      position: absolute;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ffffff, #f4f7ff);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #243043;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .badge-1 {
+      left: 4%;
+      bottom: 12%;
+    }
+
+    .badge-2 {
+      right: 2%;
+      top: 36%;
+    }
+
+    .hero-bottom-strip {
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 28px;
+      padding: 18px;
+    }
+
+    .hero-strip-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1a2435;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .hero-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .hero-preview-item {
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+      border-radius: 20px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .hero-preview-item img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 18px;
+      margin-bottom: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .hero-preview-item div {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #243043;
+      line-height: 1.3;
     }
 
     .section-card {
@@ -212,20 +443,106 @@
       box-shadow: 0 12px 22px rgba(90, 0, 214, 0.30);
     }
 
+    .contact-button {
+      background: linear-gradient(135deg, #0b84ff, #0062ff);
+      color: white;
+      box-shadow: 0 10px 26px rgba(0, 98, 255, 0.25);
+    }
+
+    .contact-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(0, 98, 255, 0.32);
+    }
+
     .footer-space {
       height: 20px;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 1100px) {
+      .hero-shell {
+        grid-template-columns: 1fr;
+        min-height: unset;
+      }
+
+      .hero-left {
+        text-align: center;
+      }
+
+      .hero-subtitle,
+      .hero-intro {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-actions,
+      .hero-stats {
+        justify-content: center;
+      }
+
+      .hero-right {
+        min-height: 500px;
+      }
+
+      .showcase-main {
+        left: 12%;
+      }
+
+      .showcase-secondary {
+        right: 10%;
+      }
+
+      .showcase-third {
+        right: 20%;
+      }
+
+      .hero-preview-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .hero {
+        padding-top: 20px;
+      }
+
+      .hero-badge {
+        font-size: 0.88rem;
+      }
+
+      .hero-right {
+        min-height: 410px;
+      }
+
+      .showcase-main {
+        width: 220px;
+        left: 2%;
+        top: 16%;
+      }
+
+      .showcase-secondary {
+        width: 180px;
+        right: 2%;
+        top: 6%;
+      }
+
+      .showcase-third {
+        width: 190px;
+        right: 10%;
+        bottom: 8%;
+      }
+
+      .mini-floating-badge {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+      }
+
+      .hero-preview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .section-card {
         padding: 24px 16px 18px;
         border-radius: 22px;
-      }
-
-      .lea-icon {
-        width: 140px;
-        height: 140px;
-        border-radius: 28px;
       }
 
       .quizi-icon {
@@ -237,6 +554,29 @@
       .store-buttons img {
         width: 118px;
       }
+
+      .hero-intro {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .hero-right {
+        min-height: 350px;
+      }
+
+      .showcase-main {
+        width: 180px;
+      }
+
+      .showcase-secondary {
+        width: 145px;
+      }
+
+      .showcase-third {
+        width: 155px;
+      }
     }
   </style>
 </head>
@@ -244,22 +584,87 @@
 <body>
   <div class="container">
     <section class="hero">
-      <h1>Lea Sol Apps</h1>
-      <img src="icons/lea.png" alt="Lea Sol" class="lea-icon" />
+      <div class="hero-shell">
+        <div class="hero-left">
+          <div class="hero-badge">✨ Playful apps, polished design, addictive quiz experiences</div>
 
-      <p class="about">
-        I’m Lea Sol Bokobza, a mobile developer who loves turning ideas into polished, playful experiences.
-        I build apps that mix creativity, design, and smart interaction — from addictive quizzes to useful
-        everyday tools made to entertain, surprise, and connect with people.
-      </p>
+          <h1>
+            Apps that feel
+            <span class="hero-highlight">fun instantly.</span>
+          </h1>
 
-      <div class="contact-section">
-        <p>Need help, found a bug, or want to get in touch? Send me a message and I’ll personally get back to you.</p>
-        <a class="contact-button" href="mailto:SoldarCompany@gmail.com">✉️ Email Me</a>
+          <div class="hero-intro hero-subtitle">
+            <img src="icons/lea.png" alt="Lea Sol Bokobza">
+            <p>
+              I’m Lea Sol Bokobza — a mobile developer building visually rich quiz games and creative utility apps
+              designed to surprise people, keep them engaged, and make every tap feel satisfying.
+            </p>
+          </div>
+
+          <div class="hero-actions">
+            <a class="primary-btn" href="#quiziverseSection">Explore Quiziverse</a>
+            <a class="secondary-btn" href="mailto:SoldarCompany@gmail.com">✉️ Contact Me</a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-pill">🎯 Quiz games</div>
+            <div class="stat-pill">📱 iOS + Google Play</div>
+            <div class="stat-pill">✨ Designed to hook instantly</div>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="hero-glow"></div>
+
+          <div class="showcase-card showcase-main">
+            <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" />
+            <div class="showcase-label">Quiziverse</div>
+          </div>
+
+          <div class="showcase-card showcase-secondary">
+            <img src="icons/com.soldar.logoquiz.png" alt="Logo Quiz 2026" />
+            <div class="showcase-label">Logo Quiz 2026</div>
+          </div>
+
+          <div class="showcase-card showcase-third">
+            <img src="icons/com.soldar.famousquiz.png" alt="Quiz Celebs Game 2026" />
+            <div class="showcase-label">Celebs Game 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-bottom-strip">
+        <div class="hero-strip-title">A quick look at the universe</div>
+        <div class="hero-preview-grid">
+          <div class="hero-preview-item">
+            <img src="icons/com.soldar.famousquiz.png" alt="Celebs Game" />
+            <div>Celebs Quiz</div>
+          </div>
+          <div class="hero-preview-item">
+            <img src="icons/com.soldar.logoquiz.png" alt="Logo Quiz" />
+            <div>Logo Quiz</div>
+          </div>
+          <div class="hero-preview-item">
+            <img src="icons/com.soldar.flagquiz.png" alt="Flags Quiz" />
+            <div>Flags Quiz</div>
+          </div>
+          <div class="hero-preview-item">
+            <img src="icons/com.soldar.emojiquiz.png" alt="Emoji Quiz" />
+            <div>Emoji Madness</div>
+          </div>
+          <div class="hero-preview-item">
+            <img src="icons/com.soldar.landmarksquiz.png" alt="Landmarks Quiz" />
+            <div>Landmarks</div>
+          </div>
+          <div class="hero-preview-item">
+            <img src="icons/com.soldar.dragonquiz.png" alt="DragonBall Quiz" />
+            <div>DragonBall Quiz</div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="section-card">
+    <section class="section-card" id="quiziverseSection">
       <div class="quiziverse-header">
         <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" class="quizi-icon" />
         <h2>Quiziverse</h2>
@@ -277,7 +682,8 @@
     <section class="section-card">
       <h2>More Apps</h2>
       <p class="section-subtitle">
-        A collection of other apps I’ve built — practical, playful, and designed to make everyday moments a little more interesting.
+        A collection of other apps I’ve built — practical, playful, and designed to make everyday moments a little more
+        interesting.
       </p>
       <div class="apps-grid" id="appsGrid"></div>
     </section>
@@ -305,7 +711,7 @@
               "id": "com.soldar.famousquiz",
               "update": false,
               "quiz": true,
-              "name": "Quiz: Celebs Game 2025",
+              "name": "Quiz: Celebs Game 2026",
               "app_store_url": "https://apps.apple.com/app/id6745571998",
               "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.famousquiz",
               "answers": "actorquiz"
@@ -457,6 +863,15 @@
               "name": "Celebrity Birthdays",
               "google_play_url": "https://play.google.com/store/apps/details?id=com.soldar.celebritybirthdays",
               "app_store_url": "https://apps.apple.com/app/id6756229599"
+            },
+            {
+              "id": "com.soldar.dragonquiz",
+              "update": false,
+              "quiz": true,
+              "name": "DragonBall Quiz",
+              "app_store_url": "",
+              "google_play_url": "",
+              "answers": "dragonquiz"
             }
           ]
         };
@@ -520,7 +935,7 @@
           if (app.quiz && app.answers) {
             const ans = document.createElement("a");
             ans.className = "answers-btn";
-            ans.href = `https://leasol.github.io/levels.html?quiz=${app.answers}`;
+            ans.href = `levels.html?quiz=${app.answers}`;
             ans.textContent = "View Answers";
             card.appendChild(ans);
           }

@@ -16,7 +16,6 @@
             transition: background 0.5s ease;
         }
 
-        /* --- BACK BUTTON --- */
         .back-btn {
             position: relative;
             display: inline-block;
@@ -87,9 +86,6 @@
             font-weight: bold;
             text-align: center;
             transition: all 0.3s ease;
-        }
-
-        .level-btn {
             background: linear-gradient(145deg, #fff, #e0e0e0);
             color: #333;
             box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2),
@@ -115,6 +111,13 @@
                 btn: "linear-gradient(145deg, #3d8b5a, #4fae72)",
                 btnText: "#ffffff",
                 hover: "0 0 25px #4fae72"
+            },
+
+            dragonquiz: {
+                bg: "linear-gradient(to right, #ff6a00, #ffb300)",
+                btn: "linear-gradient(145deg, #ff8c00, #ffd54f)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #ffd54f"
             },
 
             emojiquiz: {
@@ -181,18 +184,18 @@
             },
 
             soccerquiz: {
-                bg: "linear-gradient(to right, #003300, #00cc66)",   // deep green → bright green
-                btn: "linear-gradient(145deg, #00aa55, #66ffcc)",    // medium green → mint
-                btnText: "#ffffff",                                   // white text
-                hover: "0 0 25px #00ff99"                             // neon green glow
+                bg: "linear-gradient(to right, #003300, #00cc66)",
+                btn: "linear-gradient(145deg, #00aa55, #66ffcc)",
+                btnText: "#ffffff",
+                hover: "0 0 25px #00ff99"
             },
+
             gotquiz: {
                 bg: "linear-gradient(to right, #141414, #000000)",
                 btn: "linear-gradient(145deg, #E50914, #B81D24)",
                 btnText: "#ffffff",
                 hover: "0 0 25px #E50914"
             },
-
         };
 
         function applyTheme(quizKey) {
@@ -213,7 +216,7 @@
                 }
 
                 .level-btn:hover {
-                    box-shadow: 0 0 25px ${theme.hover};
+                    box-shadow: ${theme.hover};
                 }
             `;
             document.head.appendChild(style);
@@ -223,8 +226,8 @@
 
 <body>
 
-    <!-- ★ BACK TO ALL APPS BUTTON ★ -->
-    <a href="https://leasol.github.io" class="back-btn">← Back to All Apps</a>
+    <a href="./index.html" class="back-btn">← Back to All Apps</a>
+
     <img id="quiz-icon" src="" alt="Quiz Icon"
         style="width: 259px; height: 250px; margin-bottom: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
 
@@ -232,41 +235,174 @@
 
     <script>
         const quizzes = {
-            logoquiz: { name: "Logo Quiz", json: "https://leasol.github.io/logoquiz/json/sorted.json", images: "https://leasol.github.io/logoquiz/proced/", type: "list" },
-            actorquiz: {
-                name: "Actor Quiz", type: "categories", categories: {
-                    "Next Gen Collection": { json: "https://leasol.github.io/actorquiz/json/newactors.json", images: "https://leasol.github.io/actorquiz/toons", type: "dict" },
-                    "Childhood Pictures": { json: "https://leasol.github.io/actorquiz/json/celebrities.json", images: "https://leasol.github.io/actorquiz/left", type: "dict" },
-                    "Up Close & Personal": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/originals_scaled", type: "dict" },
-                    "Legacy Collection": { json: "https://leasol.github.io/actorquiz/json/actors.json", images: "https://leasol.github.io/actorquiz/toons_scaled", type: "dict" }
-                }
-            },
-            carlogoquiz: { name: "Car Logo Quiz", json: "https://leasol.github.io/carlogoquiz/json/sorted.json", images: "https://leasol.github.io/carlogoquiz/toons_scaled", type: "list" },
-            emojiquiz: { name: "Emoji Quiz", json: "https://leasol.github.io/emojiquiz/json/sorted.json", images: "emoji", type: "dict" },
-            flagsquiz: { name: "Flags Quiz", json: "https://leasol.github.io/flagsquiz/json/sorted.json", images: "https://leasol.github.io/flagsquiz/toons_scaled", type: "list" },
-            impossiblequiz: { name: "Impossible Quiz", json: "https://leasol.github.io/impossiblequiz/json/sorted.json", images: "https://leasol.github.io/impossiblequiz/originals_scaled", type: "list" },
-            landmarksquiz: { name: "Landmarks Quiz", json: "https://leasol.github.io/landmarksquiz/json/sorted.json", images: "https://leasol.github.io/landmarksquiz/originals_scaled", type: "list" },
-            mindblowquiz: { name: "Mindblow Quiz", json: "https://leasol.github.io/mindblowquiz/json/sorted.json", images: "https://leasol.github.io/mindblowquiz/json", type: "list" },
-            pokemonquiz: { name: "Pokemon Quiz", json: "https://leasol.github.io/pokemonquiz/json/sorted.json", images: "https://leasol.github.io/pokemonquiz/toons_scaled", type: "generations", counts: [151, 100, 135, 107, 156, 72, 88, 89, 120] },
-            steretypesquiz: { name: "Stereotypes Quiz", json: "https://leasol.github.io/steretypesquiz/json/sorted.json", images: "https://leasol.github.io/steretypesquiz/toons1", type: "list" },
-            qetflix: {
-                name: "Qetflix Quiz",
-                json: "https://leasol.github.io/netflix_titles_backup/ordered_titles.json",
-                images: "https://leasol.github.io/netflix_titles_backup/toons_scaled",
+            logoquiz: {
+                name: "Logo Quiz",
+                json: "./logoquiz/json/sorted.json",
+                images: "./logoquiz/proced/",
                 type: "list"
             },
-            soccerquiz: { name: "Soccer Quiz", json: "https://leasol.github.io/soccerquiz/json/sorted.json", images: "https://leasol.github.io/soccerquiz/proced", type: "list" },
-            gotquiz: {
-                name: "Quiz of Thrones", type: "categories", categories: {
-                    "Game of Thrones": { json: "https://leasol.github.io/gotquiz/json/got.json", images: "https://leasol.github.io/gotquiz/got", type: "dict" },
-                    "House of the Dragon": { json: "https://leasol.github.io/gotquiz/json/hotd.json", images: "https://leasol.github.io/gotquiz/hotd", type: "dict" },
+
+            actorquiz: {
+                name: "Actor Quiz",
+                type: "categories",
+                categories: {
+                    "Next Gen Collection": {
+                        json: "./actorquiz/json/newactors.json",
+                        images: "./actorquiz/toons",
+                        type: "dict"
+                    },
+                    "Childhood Pictures": {
+                        json: "./actorquiz/json/celebrities.json",
+                        images: "./actorquiz/left",
+                        type: "dict"
+                    },
+                    "Up Close & Personal": {
+                        json: "./actorquiz/json/actors.json",
+                        images: "./actorquiz/originals_scaled",
+                        type: "dict"
+                    },
+                    "Legacy Collection": {
+                        json: "./actorquiz/json/actors.json",
+                        images: "./actorquiz/toons_scaled",
+                        type: "dict"
+                    }
                 }
             },
 
+            dragonquiz: {
+                name: "Dragon Quiz",
+                type: "categories",
+                categories: {
+                    "Dragon Ball": {
+                        json: "./dragonquiz/dragon_jsons/Dragon Ball.json",
+                        images: "./dragonquiz/Dragon Ball/Gemini",
+                        type: "list"
+                    },
+                    "Dragon Ball Z": {
+                        json: "./dragonquiz/dragon_jsons/Dragon Ball Z.json",
+                        images: "./dragonquiz/Dragon Ball Z/Gemini",
+                        type: "list"
+                    },
+                    "Dragon Ball GT": {
+                        json: "./dragonquiz/dragon_jsons/Dragon Ball GT.json",
+                        images: "./dragonquiz/Dragon Ball GT/Gemini",
+                        type: "list"
+                    },
+                    "Dragon Ball Super": {
+                        json: "./dragonquiz/dragon_jsons/Dragon Ball Super.json",
+                        images: "./dragonquiz/Dragon Ball Super/Gemini",
+                        type: "list"
+                    },
+                    "Dragon Ball Daima": {
+                        json: "./dragonquiz/dragon_jsons/Dragon Ball Daima.json",
+                        images: "./dragonquiz/Dragon Ball Daima/Gemini",
+                        type: "list"
+                    },
+                    "Dragon Ball Heroes": {
+                        json: "./dragonquiz/dragon_jsons/Dragon Ball Heroes.json",
+                        images: "./dragonquiz/Dragon Ball Heroes/Gemini",
+                        type: "list"
+                    },
+                    "Dragon Ball Games": {
+                        json: "./dragonquiz/dragon_jsons/Dragon Ball Games.json",
+                        images: "./dragonquiz/Dragon Ball Games/Gemini",
+                        type: "list"
+                    }
+                }
+            },
+
+            carlogoquiz: {
+                name: "Car Logo Quiz",
+                json: "./carlogoquiz/json/sorted.json",
+                images: "./carlogoquiz/toons_scaled",
+                type: "list"
+            },
+
+            emojiquiz: {
+                name: "Emoji Quiz",
+                json: "./emojiquiz/json/sorted.json",
+                images: "emoji",
+                type: "dict"
+            },
+
+            flagsquiz: {
+                name: "Flags Quiz",
+                json: "./flagsquiz/json/sorted.json",
+                images: "./flagsquiz/toons_scaled",
+                type: "list"
+            },
+
+            impossiblequiz: {
+                name: "Impossible Quiz",
+                json: "./impossiblequiz/json/sorted.json",
+                images: "./impossiblequiz/originals_scaled",
+                type: "list"
+            },
+
+            landmarksquiz: {
+                name: "Landmarks Quiz",
+                json: "./landmarksquiz/json/sorted.json",
+                images: "./landmarksquiz/originals_scaled",
+                type: "list"
+            },
+
+            mindblowquiz: {
+                name: "Mindblow Quiz",
+                json: "./mindblowquiz/json/sorted.json",
+                images: "./mindblowquiz/json",
+                type: "list"
+            },
+
+            pokemonquiz: {
+                name: "Pokemon Quiz",
+                json: "./pokemonquiz/json/sorted.json",
+                images: "./pokemonquiz/toons_scaled",
+                type: "generations",
+                counts: [151, 100, 135, 107, 156, 72, 88, 89, 120]
+            },
+
+            steretypesquiz: {
+                name: "Stereotypes Quiz",
+                json: "./steretypesquiz/json/sorted.json",
+                images: "./steretypesquiz/toons1",
+                type: "list"
+            },
+
+            qetflix: {
+                name: "Qetflix Quiz",
+                json: "./netflix_titles_backup/ordered_titles.json",
+                images: "./netflix_titles_backup/toons_scaled",
+                type: "list"
+            },
+
+            soccerquiz: {
+                name: "Soccer Quiz",
+                json: "./soccerquiz/json/sorted.json",
+                images: "./soccerquiz/proced",
+                type: "list"
+            },
+
+            gotquiz: {
+                name: "Quiz of Thrones",
+                type: "categories",
+                categories: {
+                    "Game of Thrones": {
+                        json: "./gotquiz/json/got.json",
+                        images: "./gotquiz/got",
+                        type: "dict"
+                    },
+                    "House of the Dragon": {
+                        json: "./gotquiz/json/hotd.json",
+                        images: "./gotquiz/hotd",
+                        type: "dict"
+                    },
+                }
+            },
         };
 
         const urlParams = new URLSearchParams(window.location.search);
         const quizKey = urlParams.get("quiz");
+
         if (!quizKey || !quizzes[quizKey]) {
             document.body.innerHTML = "<h2>Quiz not found</h2>";
             throw new Error("Quiz not found");
@@ -277,25 +413,25 @@
         const quiz = quizzes[quizKey];
         document.getElementById("quiz-title").textContent = quiz.name + " - Answers";
 
-
         const quizIcons = {
-            actorquiz: "https://leasol.github.io/icons/com.soldar.famousquiz.png",
-            carlogoquiz: "https://leasol.github.io/icons/com.soldar.carlogoquiz.png",
-            pokemonquiz: "https://leasol.github.io/icons/com.soldar.creaturequiz.png",
-            emojiquiz: "https://leasol.github.io/icons/com.soldar.emojiquiz.png",
-            flagsquiz: "https://leasol.github.io/icons/com.soldar.flagquiz.png",
-            impossiblequiz: "https://leasol.github.io/icons/com.soldar.impossiblequiz.png",
-            landmarksquiz: "https://leasol.github.io/icons/com.soldar.landmarksquiz.png",
-            logoquiz: "https://leasol.github.io/icons/com.soldar.logoquiz.png",
-            mindblowquiz: "https://leasol.github.io/icons/com.soldar.mindblow.png",
-            qetflix: "https://leasol.github.io/icons/com.soldar.qetflix.png",
-            steretypesquiz: "https://leasol.github.io/icons/com.soldar.stereotypequiz.png",
-            soccerquiz: "https://leasol.github.io/icons/com.soldar.soccerquiz.png"
+            actorquiz: "./icons/com.soldar.famousquiz.png",
+            carlogoquiz: "./icons/com.soldar.carlogoquiz.png",
+            dragonquiz: "./icons/com.soldar.dragonquiz.png",
+            pokemonquiz: "./icons/com.soldar.creaturequiz.png",
+            emojiquiz: "./icons/com.soldar.emojiquiz.png",
+            flagsquiz: "./icons/com.soldar.flagquiz.png",
+            impossiblequiz: "./icons/com.soldar.impossiblequiz.png",
+            landmarksquiz: "./icons/com.soldar.landmarksquiz.png",
+            logoquiz: "./icons/com.soldar.logoquiz.png",
+            mindblowquiz: "./icons/com.soldar.mindblow.png",
+            qetflix: "./icons/com.soldar.qetflix.png",
+            steretypesquiz: "./icons/com.soldar.stereotypequiz.png",
+            soccerquiz: "./icons/com.soldar.soccerquiz.png",
+            gotquiz: "./icons/com.soldar.gotquiz.png"
         };
 
-
         const iconImg = document.getElementById("quiz-icon");
-        iconImg.src = quizIcons[quizKey] || ""; // fallback if no icon
+        iconImg.src = quizIcons[quizKey] || "";
         if (!quizIcons[quizKey]) iconImg.style.display = "none";
 
         async function getItems() {
@@ -318,18 +454,17 @@
         getItems().then(({ items, cat }) => {
 
             if (quiz.type === "generations") {
-
                 const counts = quiz.counts;
                 let startIndex = 0;
 
                 for (let g = 0; g < counts.length; g++) {
-
                     const genCount = counts[g];
                     const genItems = items.slice(startIndex, startIndex + genCount);
                     startIndex += genCount;
 
                     const section = document.createElement("details");
                     section.open = false;
+
                     const summary = document.createElement("summary");
                     summary.textContent = `Generation ${g + 1}`;
                     section.appendChild(summary);
@@ -360,11 +495,10 @@
             }
 
             if (quiz.type === "categories") {
-
                 Object.entries(quiz.categories).forEach(([catName, catData]) => {
-
                     const section = document.createElement("details");
                     section.open = false;
+
                     const summary = document.createElement("summary");
                     summary.textContent = catName;
                     section.appendChild(summary);
@@ -412,15 +546,29 @@
                 levelBtn.className = "level-btn";
                 levelBtn.textContent = `Level ${i + 1}`;
                 levelBtn.onclick = () => {
-                    let url = `level.html?quiz=${quizKey}&level=${i + 1}`;
-                    window.location.href = url;
+                    window.location.href = `level.html?quiz=${quizKey}&level=${i + 1}`;
                 };
                 wrapper.appendChild(levelBtn);
             }
 
             document.body.appendChild(wrapper);
+        }).catch(error => {
+            console.error("Failed to load quiz data:", error);
+            const errorMsg = document.createElement("div");
+            errorMsg.style.color = "white";
+            errorMsg.style.fontSize = "24px";
+            errorMsg.style.marginTop = "30px";
+            errorMsg.style.textAlign = "center";
+            errorMsg.innerHTML = `
+                Failed to load quiz data.<br><br>
+                Make sure you are serving the repo through a local server.<br>
+                Example:<br>
+                <code style="color:white;">python3 -m http.server 8000</code><br><br>
+                Then open:<br>
+                <code style="color:white;">http://localhost:8000/yourfile.html?quiz=dragonquiz</code>
+            `;
+            document.body.appendChild(errorMsg);
         });
-
     </script>
 </body>
 
