@@ -133,6 +133,25 @@
       cursor: default;
     }
 
+    .fullscreen-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .fullscreen-file-name {
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+      max-width: 90vw;
+      word-break: break-word;
+    }
+
     #fullscreen-overlay img {
       max-width: 90vw;
       max-height: 90vh;
@@ -150,9 +169,9 @@
       --split: 50%;
       position: relative;
       width: min(90vw, 1200px);
-      height: min(90vh, 800px);
+      height: min(82vh, 760px);
       max-width: 90vw;
-      max-height: 90vh;
+      max-height: 82vh;
       border-radius: 14px;
       overflow: hidden;
       box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
@@ -250,28 +269,6 @@
       background: transparent;
     }
 
-    .compare-label {
-      position: absolute;
-      top: 18px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.55);
-      color: #fff;
-      font-size: 14px;
-      font-weight: bold;
-      z-index: 7;
-      pointer-events: none;
-      backdrop-filter: blur(6px);
-    }
-
-    .compare-label.before {
-      left: 18px;
-    }
-
-    .compare-label.after {
-      right: 18px;
-    }
-
     .fullscreen-loading {
       color: #fff;
       font-size: 24px;
@@ -289,6 +286,10 @@
         width: 48px;
         height: 48px;
       }
+
+      .fullscreen-file-name {
+        font-size: 22px;
+      }
     }
 
     @media(max-width:450px) {
@@ -296,9 +297,8 @@
         grid-template-columns: 1fr;
       }
 
-      .compare-label {
-        font-size: 12px;
-        padding: 6px 10px;
+      .fullscreen-file-name {
+        font-size: 18px;
       }
     }
   </style>
@@ -755,6 +755,20 @@
       return img;
     }
 
+    function createFullscreenWrapper(titleText, contentNode) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'fullscreen-view';
+
+      const title = document.createElement('div');
+      title.className = 'fullscreen-file-name';
+      title.textContent = titleText;
+
+      wrapper.appendChild(title);
+      wrapper.appendChild(contentNode);
+
+      return wrapper;
+    }
+
     function createCompareSlider(beforeSrc, afterSrc) {
       const wrapper = document.createElement('div');
       wrapper.className = 'compare-stage';
@@ -775,14 +789,6 @@
 
       const handle = document.createElement('div');
       handle.className = 'compare-handle';
-
-      const beforeLabel = document.createElement('div');
-      beforeLabel.className = 'compare-label before';
-      beforeLabel.textContent = 'Before';
-
-      const afterLabel = document.createElement('div');
-      afterLabel.className = 'compare-label after';
-      afterLabel.textContent = 'After';
 
       const range = document.createElement('input');
       range.className = 'compare-range';
@@ -874,8 +880,6 @@
       wrapper.appendChild(afterImg);
       wrapper.appendChild(divider);
       wrapper.appendChild(handle);
-      wrapper.appendChild(beforeLabel);
-      wrapper.appendChild(afterLabel);
       wrapper.appendChild(range);
 
       return wrapper;
@@ -890,11 +894,15 @@
       fullscreenOverlay.style.display = 'flex';
       fullscreenContent.innerHTML = '<div class="fullscreen-loading">Loading...</div>';
 
+      const displayName = prettifyName(name);
+
       if (images === "emoji") {
         fullscreenContent.innerHTML = '';
+
         const span = document.createElement('span');
         span.textContent = String(name).split("_")[1];
-        fullscreenContent.appendChild(span);
+
+        fullscreenContent.appendChild(createFullscreenWrapper(displayName, span));
         return;
       }
 
@@ -926,14 +934,15 @@
 
           try {
             const beforeSrc = await resolveImageSrc(beforeBasePath, preferred, allowExtensionless);
-            fullscreenContent.appendChild(createCompareSlider(beforeSrc, afterSrc));
+            const compareSlider = createCompareSlider(beforeSrc, afterSrc);
+            fullscreenContent.appendChild(createFullscreenWrapper(displayName, compareSlider));
             return;
           } catch (err) {
             console.warn("Before image not found, falling back to normal fullscreen image:", err);
           }
         }
 
-        fullscreenContent.appendChild(createFullscreenImage(afterSrc));
+        fullscreenContent.appendChild(createFullscreenWrapper(displayName, createFullscreenImage(afterSrc)));
       } catch (error) {
         console.error("Failed to open fullscreen image:", error);
         fullscreenContent.innerHTML = '<div class="fullscreen-loading">Failed to load image.</div>';
