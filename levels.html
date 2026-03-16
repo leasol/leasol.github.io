@@ -30,6 +30,7 @@
             font-weight: bold;
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
             transition: 0.3s ease;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
         }
 
         .back-btn:hover {
@@ -103,98 +104,112 @@
                 bg: "linear-gradient(to right, #142e5e, #3562cc)",
                 btn: "linear-gradient(145deg, #87c1fe, #98cafd)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #54678a"
+                hover: "0 0 25px #54678a",
+                backBtnColor: "#ffffff"
             },
 
             carlogoquiz: {
                 bg: "linear-gradient(to right, #0b2e1d, #1d5b3a)",
                 btn: "linear-gradient(145deg, #3d8b5a, #4fae72)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #4fae72"
+                hover: "0 0 25px #4fae72",
+                backBtnColor: "#ffffff"
             },
 
             dragonquiz: {
                 bg: "linear-gradient(to right, #ff6a00, #ffb300)",
                 btn: "linear-gradient(145deg, #ff8c00, #ffd54f)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #ffd54f"
+                hover: "0 0 25px #ffd54f",
+                backBtnColor: "#ffffff"
             },
 
             emojiquiz: {
                 bg: "linear-gradient(to right, #2B004A, #6A0DAD)",
                 btn: "linear-gradient(145deg, #9B30FF, #D8B4FF)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #D8B4FF"
+                hover: "0 0 25px #D8B4FF",
+                backBtnColor: "#ffffff"
             },
 
             flagsquiz: {
                 bg: "linear-gradient(to right, #44293e, #60b4e9)",
                 btn: "linear-gradient(145deg, #60b4e9, #7bcaff)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #60b4e9"
+                hover: "0 0 25px #60b4e9",
+                backBtnColor: "#ffffff"
             },
 
             impossiblequiz: {
                 bg: "linear-gradient(to right, #311B92, #00E5FF)",
                 btn: "linear-gradient(145deg, #00E5FF, #7ff5ff)",
                 btnText: "#000000",
-                hover: "0 0 25px #00E5FF"
+                hover: "0 0 25px #00E5FF",
+                backBtnColor: "#ffffff"
             },
 
             landmarksquiz: {
                 bg: "linear-gradient(to right, #2E3192, #1BFFFF)",
                 btn: "linear-gradient(145deg, #6A82FB, #FC5C7D)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #6A82FB"
+                hover: "0 0 25px #6A82FB",
+                backBtnColor: "#ffffff"
             },
 
             logoquiz: {
                 bg: "linear-gradient(to right, #1E0E0B, #3c1c14)",
                 btn: "linear-gradient(145deg, #D9A236, #F5D49B)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #CC7A56"
+                hover: "0 0 25px #CC7A56",
+                backBtnColor: "#ffffff"
             },
 
             mindblowquiz: {
                 bg: "linear-gradient(to right, #ff416c, #ff4b2b)",
                 btn: "linear-gradient(145deg, #ff758c, #ff7eb3)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #ff4b2b"
+                hover: "0 0 25px #ff4b2b",
+                backBtnColor: "#ffffff"
             },
 
             qetflix: {
                 bg: "linear-gradient(to right, #141414, #000000)",
                 btn: "linear-gradient(145deg, #E50914, #B81D24)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #E50914"
+                hover: "0 0 25px #E50914",
+                backBtnColor: "#ffffff"
             },
 
             pokemonquiz: {
                 bg: "linear-gradient(to right, #FF0000, #ffffff, #000000)",
                 btn: "linear-gradient(145deg, #FF0000, #FFC0C0)",
-                btnText: "#ffffff",
-                hover: "0 0 25px #FF0000"
+                btnText: "#000000",
+                hover: "0 0 25px #FF0000",
+                backBtnColor: "#000000"
             },
 
             steretypesquiz: {
                 bg: "linear-gradient(to right, #ff0066, #ffcc00)",
                 btn: "linear-gradient(145deg, #ff6699, #ffdd55)",
                 btnText: "#000000",
-                hover: "0 0 25px #ff6699"
+                hover: "0 0 25px #ff6699",
+                backBtnColor: "#ffffff"
             },
 
             soccerquiz: {
                 bg: "linear-gradient(to right, #003300, #00cc66)",
                 btn: "linear-gradient(145deg, #00aa55, #66ffcc)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #00ff99"
+                hover: "0 0 25px #00ff99",
+                backBtnColor: "#ffffff"
             },
 
             gotquiz: {
                 bg: "linear-gradient(to right, #141414, #000000)",
                 btn: "linear-gradient(145deg, #E50914, #B81D24)",
                 btnText: "#ffffff",
-                hover: "0 0 25px #E50914"
+                hover: "0 0 25px #E50914",
+                backBtnColor: "#ffffff"
             },
         };
 
@@ -206,6 +221,20 @@
             const h1 = document.getElementById("quiz-title");
             if (h1) h1.style.textShadow = theme.hover;
 
+            // Apply back button color
+            const backBtn = document.querySelector(".back-btn");
+            if (backBtn && theme.backBtnColor) {
+                backBtn.style.color = theme.backBtnColor;
+                // Use dark text shadow for light text on light bg, none for dark text
+                backBtn.style.textShadow = theme.backBtnColor === "#000000"
+                    ? "none"
+                    : "0 1px 3px rgba(0,0,0,0.35)";
+                // Boost background contrast for dark-text button
+                if (theme.backBtnColor === "#000000") {
+                    backBtn.style.background = "rgba(255, 255, 255, 0.55)";
+                }
+            }
+
             const style = document.createElement("style");
             style.innerHTML = `
                 .level-btn {
@@ -213,6 +242,7 @@
                     color: ${theme.btnText} !important;
                     box-shadow: 6px 6px 18px rgba(0,0,0,0.25),
                                 -4px -4px 15px rgba(255,255,255,0.5);
+                    text-shadow: ${theme.btnText === "#000000" ? "none" : "0 1px 2px rgba(0,0,0,0.3)"};
                 }
 
                 .level-btn:hover {

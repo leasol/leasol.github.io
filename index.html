@@ -18,13 +18,32 @@
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
+      background: #f7f9fc;
+      color: #121212;
+      overflow-x: hidden;
+    }
+
+    /* Full-width hero background — sits outside .container */
+    .hero-bg {
       background:
         radial-gradient(circle at top left, rgba(113, 89, 255, 0.16), transparent 28%),
         radial-gradient(circle at top right, rgba(0, 153, 255, 0.16), transparent 26%),
         radial-gradient(circle at center top, rgba(255, 0, 132, 0.08), transparent 30%),
         linear-gradient(180deg, #f7f9fc 0%, #eef3f9 100%);
-      color: #121212;
-      overflow-x: hidden;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg::before {
+      content: "";
+      position: absolute;
+      inset: -120px -120px -40px -120px;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(123, 31, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 88% 10%, rgba(0, 98, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 50% -10%, rgba(255, 99, 132, 0.10), transparent 34%);
+      pointer-events: none;
     }
 
     .container {
@@ -35,19 +54,8 @@
     .hero {
       position: relative;
       padding: 32px 0 28px;
-      overflow: hidden;
       margin-bottom: 24px;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: -120px -120px -40px -120px;
-      background:
-        radial-gradient(circle at 12% 18%, rgba(123, 31, 255, 0.18), transparent 32%),
-        radial-gradient(circle at 88% 10%, rgba(0, 98, 255, 0.18), transparent 32%),
-        radial-gradient(circle at 50% -10%, rgba(255, 99, 132, 0.10), transparent 34%);
-      pointer-events: none;
+      z-index: 1;
     }
 
     .hero-shell {
@@ -299,6 +307,7 @@
       gap: 14px;
     }
 
+    /* Clickable preview items */
     .hero-preview-item {
       background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
       border-radius: 20px;
@@ -306,6 +315,16 @@
       text-align: center;
       box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
       border: 1px solid rgba(15, 23, 42, 0.05);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+      display: block;
+      color: inherit;
+    }
+
+    .hero-preview-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.12);
     }
 
     .hero-preview-item img {
@@ -387,6 +406,25 @@
     .app-card:hover {
       transform: translateY(-6px);
       box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+    }
+
+    /* Highlight animation when scrolled to via preview click */
+    .app-card.highlight-pulse {
+      animation: highlightPulse 1.2s ease;
+    }
+
+    @keyframes highlightPulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(123, 31, 255, 0);
+      }
+
+      30% {
+        box-shadow: 0 0 0 8px rgba(123, 31, 255, 0.25);
+      }
+
+      100% {
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      }
     }
 
     .app-icon {
@@ -582,88 +620,94 @@
 </head>
 
 <body>
+
+  <!-- Full-width gradient wrapper for the hero section -->
+  <div class="hero-bg">
+    <div class="container">
+      <section class="hero">
+        <div class="hero-shell">
+          <div class="hero-left">
+            <div class="hero-badge">✨ Playful apps, polished design, addictive quiz experiences</div>
+
+            <h1>
+              Apps that feel
+              <span class="hero-highlight">fun instantly.</span>
+            </h1>
+
+            <div class="hero-intro hero-subtitle">
+              <img src="icons/lea.png" alt="Lea Sol Bokobza">
+              <p>
+                I'm Lea Sol Bokobza — a mobile developer building visually rich quiz games and creative utility apps
+                designed to surprise people, keep them engaged, and make every tap feel satisfying.
+              </p>
+            </div>
+
+            <div class="hero-actions">
+              <a class="primary-btn" href="#quiziverseSection">Explore Quiziverse</a>
+              <a class="secondary-btn" href="mailto:SoldarCompany@gmail.com">✉️ Contact Me</a>
+            </div>
+
+            <div class="hero-stats">
+              <div class="stat-pill">🎯 Quiz games</div>
+              <div class="stat-pill">📱 iOS + Google Play</div>
+              <div class="stat-pill">✨ Designed to hook instantly</div>
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div class="hero-glow"></div>
+
+            <div class="showcase-card showcase-main">
+              <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" />
+              <div class="showcase-label">Quiziverse</div>
+            </div>
+
+            <div class="showcase-card showcase-secondary">
+              <img src="icons/com.soldar.logoquiz.png" alt="Logo Quiz 2026" />
+              <div class="showcase-label">Logo Quiz 2026</div>
+            </div>
+
+            <div class="showcase-card showcase-third">
+              <img src="icons/com.soldar.famousquiz.png" alt="Quiz Celebs Game 2026" />
+              <div class="showcase-label">Celebs Game 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-bottom-strip">
+          <div class="hero-strip-title">A quick look at the universe</div>
+          <div class="hero-preview-grid">
+            <a class="hero-preview-item" data-app-id="com.soldar.famousquiz" href="#quiziverseSection">
+              <img src="icons/com.soldar.famousquiz.png" alt="Celebs Game" />
+              <div>Celebs Quiz</div>
+            </a>
+            <a class="hero-preview-item" data-app-id="com.soldar.logoquiz" href="#quiziverseSection">
+              <img src="icons/com.soldar.logoquiz.png" alt="Logo Quiz" />
+              <div>Logo Quiz</div>
+            </a>
+            <a class="hero-preview-item" data-app-id="com.soldar.flagquiz" href="#quiziverseSection">
+              <img src="icons/com.soldar.flagquiz.png" alt="Flags Quiz" />
+              <div>Flags Quiz</div>
+            </a>
+            <a class="hero-preview-item" data-app-id="com.soldar.emojiquiz" href="#quiziverseSection">
+              <img src="icons/com.soldar.emojiquiz.png" alt="Emoji Quiz" />
+              <div>Emoji Madness</div>
+            </a>
+            <a class="hero-preview-item" data-app-id="com.soldar.landmarksquiz" href="#quiziverseSection">
+              <img src="icons/com.soldar.landmarksquiz.png" alt="Landmarks Quiz" />
+              <div>Landmarks</div>
+            </a>
+            <a class="hero-preview-item" data-app-id="com.soldar.dragonquiz" href="#quiziverseSection">
+              <img src="icons/com.soldar.dragonquiz.png" alt="DragonBall Quiz" />
+              <div>DragonBall Quiz</div>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
   <div class="container">
-    <section class="hero">
-      <div class="hero-shell">
-        <div class="hero-left">
-          <div class="hero-badge">✨ Playful apps, polished design, addictive quiz experiences</div>
-
-          <h1>
-            Apps that feel
-            <span class="hero-highlight">fun instantly.</span>
-          </h1>
-
-          <div class="hero-intro hero-subtitle">
-            <img src="icons/lea.png" alt="Lea Sol Bokobza">
-            <p>
-              I’m Lea Sol Bokobza — a mobile developer building visually rich quiz games and creative utility apps
-              designed to surprise people, keep them engaged, and make every tap feel satisfying.
-            </p>
-          </div>
-
-          <div class="hero-actions">
-            <a class="primary-btn" href="#quiziverseSection">Explore Quiziverse</a>
-            <a class="secondary-btn" href="mailto:SoldarCompany@gmail.com">✉️ Contact Me</a>
-          </div>
-
-          <div class="hero-stats">
-            <div class="stat-pill">🎯 Quiz games</div>
-            <div class="stat-pill">📱 iOS + Google Play</div>
-            <div class="stat-pill">✨ Designed to hook instantly</div>
-          </div>
-        </div>
-
-        <div class="hero-right">
-          <div class="hero-glow"></div>
-
-          <div class="showcase-card showcase-main">
-            <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" />
-            <div class="showcase-label">Quiziverse</div>
-          </div>
-
-          <div class="showcase-card showcase-secondary">
-            <img src="icons/com.soldar.logoquiz.png" alt="Logo Quiz 2026" />
-            <div class="showcase-label">Logo Quiz 2026</div>
-          </div>
-
-          <div class="showcase-card showcase-third">
-            <img src="icons/com.soldar.famousquiz.png" alt="Quiz Celebs Game 2026" />
-            <div class="showcase-label">Celebs Game 2026</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-bottom-strip">
-        <div class="hero-strip-title">A quick look at the universe</div>
-        <div class="hero-preview-grid">
-          <div class="hero-preview-item">
-            <img src="icons/com.soldar.famousquiz.png" alt="Celebs Game" />
-            <div>Celebs Quiz</div>
-          </div>
-          <div class="hero-preview-item">
-            <img src="icons/com.soldar.logoquiz.png" alt="Logo Quiz" />
-            <div>Logo Quiz</div>
-          </div>
-          <div class="hero-preview-item">
-            <img src="icons/com.soldar.flagquiz.png" alt="Flags Quiz" />
-            <div>Flags Quiz</div>
-          </div>
-          <div class="hero-preview-item">
-            <img src="icons/com.soldar.emojiquiz.png" alt="Emoji Quiz" />
-            <div>Emoji Madness</div>
-          </div>
-          <div class="hero-preview-item">
-            <img src="icons/com.soldar.landmarksquiz.png" alt="Landmarks Quiz" />
-            <div>Landmarks</div>
-          </div>
-          <div class="hero-preview-item">
-            <img src="icons/com.soldar.dragonquiz.png" alt="DragonBall Quiz" />
-            <div>DragonBall Quiz</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="section-card" id="quiziverseSection">
       <div class="quiziverse-header">
         <img src="icons/com.soldar.quiziverse.png" alt="Quiziverse" class="quizi-icon" />
@@ -682,7 +726,7 @@
     <section class="section-card">
       <h2>More Apps</h2>
       <p class="section-subtitle">
-        A collection of other apps I’ve built — practical, playful, and designed to make everyday moments a little more
+        A collection of other apps I've built — practical, playful, and designed to make everyday moments a little more
         interesting.
       </p>
       <div class="apps-grid" id="appsGrid"></div>
@@ -700,6 +744,28 @@
       }
       return arr;
     }
+
+    // Map from app id -> rendered card element (populated after loadApps)
+    const appCardMap = {};
+
+    // Handle preview item clicks: scroll to the card and pulse it
+    document.querySelectorAll('.hero-preview-item[data-app-id]').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const appId = item.dataset.appId;
+        const card = appCardMap[appId];
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.classList.remove('highlight-pulse');
+          // Force reflow so the animation restarts if clicked multiple times
+          void card.offsetWidth;
+          card.classList.add('highlight-pulse');
+        } else {
+          // Card not rendered yet (e.g. empty url) — just scroll to section
+          document.getElementById('quiziverseSection').scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
 
     async function loadApps() {
       try {
@@ -887,6 +953,10 @@
         randomizedApps.forEach(app => {
           const card = document.createElement("div");
           card.className = "app-card";
+          card.dataset.appId = app.id;
+
+          // Register in map for preview-click scrolling
+          appCardMap[app.id] = card;
 
           const icon = document.createElement("img");
           icon.src = "https://leasol.github.io/icons/" + app.id + ".png";
