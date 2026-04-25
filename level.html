@@ -109,6 +109,30 @@
       opacity: 1;
     }
 
+    .vip-lock {
+      max-width: 520px;
+      margin-top: 50px;
+      padding: 34px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      color: #fff;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+
+    .vip-lock h2 {
+      margin: 0 0 12px;
+      font-size: 30px;
+    }
+
+    .vip-lock p {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
     #fullscreen-overlay {
       display: none;
       position: fixed;
@@ -613,6 +637,11 @@
     const levelNum = parseInt(urlParams.get('level'));
     const generation = parseInt(urlParams.get('generation'));
     const category = urlParams.get('category');
+    const VIP_LOCKED_QUIZ = "actorquiz";
+    const VIP_TIMESTAMP_PARAM = "t";
+    const VIP_SIGNATURE_PARAM = "sig";
+    const VIP_ACCESS_SECRET = "celebs-vip-window-2026";
+    const VIP_ACCESS_WINDOW_SECONDS = 30;
 
     if (!quizKey || !quizzes[quizKey] || !levelNum) {
       document.body.innerHTML = "<h2 style='color:white'>Invalid quiz or level</h2>";
@@ -648,6 +677,52 @@
         }
       `;
       document.head.appendChild(style);
+    }
+
+    function isVipLockedQuiz() {
+      return quizKey === VIP_LOCKED_QUIZ;
+    }
+
+    function fnv1aHex(input) {
+      let hash = 0x811c9dc5;
+      for (let i = 0; i < input.length; i++) {
+        hash ^= input.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193) >>> 0;
+      }
+      return hash.toString(16).padStart(8, "0");
+    }
+
+    function createVipSignature(timestamp) {
+      return fnv1aHex(`${VIP_LOCKED_QUIZ}:${timestamp}:${VIP_ACCESS_SECRET}`);
+    }
+
+    function hasVipAccess() {
+      if (!isVipLockedQuiz()) return true;
+
+      const timestamp = Number(urlParams.get(VIP_TIMESTAMP_PARAM));
+      const signature = urlParams.get(VIP_SIGNATURE_PARAM);
+      if (!Number.isFinite(timestamp) || !signature) return false;
+
+      const now = Math.floor(Date.now() / 1000);
+      const age = now - timestamp;
+      if (age < -5 || age > VIP_ACCESS_WINDOW_SECONDS) return false;
+
+      return signature === createVipSignature(timestamp);
+    }
+
+    function renderVipLock() {
+      document.body.innerHTML = `
+        <a href="./index.html" class="back-btn">← Back to All Apps</a>
+        <section class="vip-lock">
+          <h2>VIP Answers Locked</h2>
+          <p>This answer page is available from inside Quiz: Celebs Game 2026 for VIP users.</p>
+        </section>
+      `;
+    }
+
+    if (!hasVipAccess()) {
+      renderVipLock();
+      throw new Error("VIP access required");
     }
 
     const quiz = quizzes[quizKey];

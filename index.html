@@ -463,24 +463,6 @@
       display: block;
     }
 
-    .answers-btn {
-      margin-top: 14px;
-      display: inline-block;
-      padding: 11px 18px;
-      background: linear-gradient(135deg, #7b1fff, #5a00d6);
-      color: white;
-      border-radius: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      box-shadow: 0 8px 18px rgba(90, 0, 214, 0.25);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .answers-btn:hover {
-      transform: scale(1.04);
-      box-shadow: 0 12px 22px rgba(90, 0, 214, 0.30);
-    }
-
     .contact-button {
       background: linear-gradient(135deg, #0b84ff, #0062ff);
       color: white;
@@ -1001,14 +983,6 @@
           }
 
           card.appendChild(buttons);
-
-          if (app.quiz && app.answers) {
-            const ans = document.createElement("a");
-            ans.className = "answers-btn";
-            ans.href = `levels.html?quiz=${app.answers}`;
-            ans.textContent = "View Answers";
-            card.appendChild(ans);
-          }
 
           if (app.quiz) {
             quizGrid.appendChild(card);
