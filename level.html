@@ -340,6 +340,8 @@
   </div>
 
   <script>
+    const REMOTE_IMAGE_ROOT = "https://LeaSolBok.github.io";
+
     const themes = {
       actorquiz: {
         bg: "linear-gradient(to right, #142e5e, #3562cc)",
@@ -468,26 +470,26 @@
         categories: {
           "Next Gen Collection": {
             json: "./actorquiz/json/newactors.json",
-            images: "./actorquiz/toons",
-            before: "./actorquiz/proced",
+            images: `${REMOTE_IMAGE_ROOT}/actorquiz/toons`,
+            before: `${REMOTE_IMAGE_ROOT}/actorquiz/proced`,
             type: "dict"
           },
           "Childhood Pictures": {
             json: "./actorquiz/json/celebrities.json",
-            images: "./actorquiz/left",
-            before: "./actorquiz/right",
+            images: `${REMOTE_IMAGE_ROOT}/actorquiz/left`,
+            before: `${REMOTE_IMAGE_ROOT}/actorquiz/right`,
             type: "dict"
           },
           "Up Close & Personal": {
             json: "./actorquiz/json/actors.json",
-            images: "./actorquiz/originals_scaled",
-            before: "./actorquiz/toons_scaled",
+            images: `${REMOTE_IMAGE_ROOT}/actorquiz/originals_scaled`,
+            before: `${REMOTE_IMAGE_ROOT}/actorquiz/toons_scaled`,
             type: "dict"
           },
           "Legacy Collection": {
             json: "./actorquiz/json/actors.json",
-            images: "./actorquiz/toons_scaled",
-            before: "./actorquiz/originals_scaled",
+            images: `${REMOTE_IMAGE_ROOT}/actorquiz/toons_scaled`,
+            before: `${REMOTE_IMAGE_ROOT}/actorquiz/originals_scaled`,
             type: "dict"
           }
         }
@@ -499,44 +501,44 @@
         categories: {
           "Dragon Ball": {
             json: "./dragonquiz/dragon_jsons/Dragon Ball.json",
-            images: "./dragonquiz/Dragon Ball/Gemini",
-            before: "./dragonquiz/Dragon Ball/dragon_ball",
+            images: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball/Gemini`,
+            before: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball/dragon_ball`,
             type: "list"
           },
           "Dragon Ball Z": {
             json: "./dragonquiz/dragon_jsons/Dragon Ball Z.json",
-            images: "./dragonquiz/Dragon Ball Z/Gemini",
-            before: "./dragonquiz/Dragon Ball Z/dragon_ball_z",
+            images: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Z/Gemini`,
+            before: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Z/dragon_ball_z`,
             type: "list"
           },
           "Dragon Ball GT": {
             json: "./dragonquiz/dragon_jsons/Dragon Ball GT.json",
-            images: "./dragonquiz/Dragon Ball GT/Gemini",
-            before: "./dragonquiz/Dragon Ball GT/dragon_ball_gt",
+            images: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball GT/Gemini`,
+            before: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball GT/dragon_ball_gt`,
             type: "list"
           },
           "Dragon Ball Super": {
             json: "./dragonquiz/dragon_jsons/Dragon Ball Super.json",
-            images: "./dragonquiz/Dragon Ball Super/Gemini",
-            before: "./dragonquiz/Dragon Ball Super/dragon_ball_super",
+            images: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Super/Gemini`,
+            before: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Super/dragon_ball_super`,
             type: "list"
           },
           "Dragon Ball Daima": {
             json: "./dragonquiz/dragon_jsons/Dragon Ball Daima.json",
-            images: "./dragonquiz/Dragon Ball Daima/Gemini",
-            before: "./dragonquiz/Dragon Ball Daima/dragon_ball_daima",
+            images: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Daima/Gemini`,
+            before: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Daima/dragon_ball_daima`,
             type: "list"
           },
           "Dragon Ball Heroes": {
             json: "./dragonquiz/dragon_jsons/Dragon Ball Heroes.json",
-            images: "./dragonquiz/Dragon Ball Heroes/Gemini",
-            before: "./dragonquiz/Dragon Ball Heroes/sdbh_characters",
+            images: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Heroes/Gemini`,
+            before: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Heroes/sdbh_characters`,
             type: "list"
           },
           "Dragon Ball Games": {
             json: "./dragonquiz/dragon_jsons/Dragon Ball Games.json",
-            images: "./dragonquiz/Dragon Ball Games/Gemini",
-            before: "./dragonquiz/Dragon Ball Games/dragon_games_characters",
+            images: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Games/Gemini`,
+            before: `${REMOTE_IMAGE_ROOT}/dragonquiz/Dragon Ball Games/dragon_games_characters`,
             type: "list"
           }
         }
@@ -603,7 +605,7 @@
       qetflix: {
         name: "Qetflix",
         json: "./netflix_titles_backup/ordered_titles.json",
-        images: "./netflix_titles_backup",
+        images: `${REMOTE_IMAGE_ROOT}/netflix_titles_backup`,
         type: "netflix"
       },
 
