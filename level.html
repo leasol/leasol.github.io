@@ -341,6 +341,7 @@
 
   <script>
     const REMOTE_IMAGE_ROOT = "https://LeaSolBok.github.io";
+    const REMOTE_ACTORQUIZ_ROOT = `${REMOTE_IMAGE_ROOT}/actorquiz`;
 
     const themes = {
       actorquiz: {
@@ -469,27 +470,27 @@
         type: "categories",
         categories: {
           "Next Gen Collection": {
-            json: "./actorquiz/json/newactors.json",
-            images: `${REMOTE_IMAGE_ROOT}/actorquiz/toons`,
-            before: `${REMOTE_IMAGE_ROOT}/actorquiz/proced`,
+            json: `${REMOTE_ACTORQUIZ_ROOT}/json/newactors.json`,
+            images: `${REMOTE_ACTORQUIZ_ROOT}/toons`,
+            before: `${REMOTE_ACTORQUIZ_ROOT}/proced`,
             type: "dict"
           },
           "Childhood Pictures": {
-            json: "./actorquiz/json/celebrities.json",
-            images: `${REMOTE_IMAGE_ROOT}/actorquiz/left`,
-            before: `${REMOTE_IMAGE_ROOT}/actorquiz/right`,
+            json: `${REMOTE_ACTORQUIZ_ROOT}/json/celebrities.json`,
+            images: `${REMOTE_ACTORQUIZ_ROOT}/left`,
+            before: `${REMOTE_ACTORQUIZ_ROOT}/right`,
             type: "dict"
           },
           "Up Close & Personal": {
-            json: "./actorquiz/json/actors.json",
-            images: `${REMOTE_IMAGE_ROOT}/actorquiz/originals_scaled`,
-            before: `${REMOTE_IMAGE_ROOT}/actorquiz/toons_scaled`,
+            json: `${REMOTE_ACTORQUIZ_ROOT}/json/actors.json`,
+            images: `${REMOTE_ACTORQUIZ_ROOT}/originals_scaled`,
+            before: `${REMOTE_ACTORQUIZ_ROOT}/toons_scaled`,
             type: "dict"
           },
           "Legacy Collection": {
-            json: "./actorquiz/json/actors.json",
-            images: `${REMOTE_IMAGE_ROOT}/actorquiz/toons_scaled`,
-            before: `${REMOTE_IMAGE_ROOT}/actorquiz/originals_scaled`,
+            json: `${REMOTE_ACTORQUIZ_ROOT}/json/actors.json`,
+            images: `${REMOTE_ACTORQUIZ_ROOT}/toons_scaled`,
+            before: `${REMOTE_ACTORQUIZ_ROOT}/originals_scaled`,
             type: "dict"
           }
         }

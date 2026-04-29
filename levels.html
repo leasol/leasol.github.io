@@ -288,6 +288,8 @@
     <h1 id="quiz-title"></h1>
 
     <script>
+        const REMOTE_ACTORQUIZ_ROOT = "https://LeaSolBok.github.io/actorquiz";
+
         const quizzes = {
             logoquiz: {
                 name: "Logo Quiz",
@@ -301,23 +303,23 @@
                 type: "categories",
                 categories: {
                     "Next Gen Collection": {
-                        json: "./actorquiz/json/newactors.json",
-                        images: "./actorquiz/toons",
+                        json: `${REMOTE_ACTORQUIZ_ROOT}/json/newactors.json`,
+                        images: `${REMOTE_ACTORQUIZ_ROOT}/toons`,
                         type: "dict"
                     },
                     "Childhood Pictures": {
-                        json: "./actorquiz/json/celebrities.json",
-                        images: "./actorquiz/left",
+                        json: `${REMOTE_ACTORQUIZ_ROOT}/json/celebrities.json`,
+                        images: `${REMOTE_ACTORQUIZ_ROOT}/left`,
                         type: "dict"
                     },
                     "Up Close & Personal": {
-                        json: "./actorquiz/json/actors.json",
-                        images: "./actorquiz/originals_scaled",
+                        json: `${REMOTE_ACTORQUIZ_ROOT}/json/actors.json`,
+                        images: `${REMOTE_ACTORQUIZ_ROOT}/originals_scaled`,
                         type: "dict"
                     },
                     "Legacy Collection": {
-                        json: "./actorquiz/json/actors.json",
-                        images: "./actorquiz/toons_scaled",
+                        json: `${REMOTE_ACTORQUIZ_ROOT}/json/actors.json`,
+                        images: `${REMOTE_ACTORQUIZ_ROOT}/toons_scaled`,
                         type: "dict"
                     }
                 }
