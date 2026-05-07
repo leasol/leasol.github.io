@@ -4,7 +4,7 @@
     "apps": [
         {
             "id": "com.soldar.famousquiz",
-            "update": false,
+            "update": true,
             "quiz": true,
             "name": "Quiz: Celebs Game 2026",
             "app_store_url": "https://apps.apple.com/app/id6745571998",
