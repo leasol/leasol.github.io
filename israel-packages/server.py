@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import base64, json, mimetypes, os, re, shutil, sys, urllib.parse, urllib.request
+import base64, json, mimetypes, os, re, shutil, sys, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timezone
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -121,8 +121,12 @@ def generate_gemini_image(image_url, name):
         method="POST",
         headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(request, timeout=120) as response:
-        result = json.load(response)
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            result = json.load(response)
+    except urllib.error.HTTPError as error:
+        details = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Gemini HTTP {error.code}: {details}") from error
     generated = find_generated_image(result)
     if not generated:
         raise RuntimeError("Gemini לא החזיר תמונה")

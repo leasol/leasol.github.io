@@ -70,3 +70,43 @@
   background: #fff1f1;
   color: #9c2f2f;
 }
+
+.gemini-error-panel {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #dfc5c5;
+  border-radius: 9px;
+  background: #fffafa;
+}
+
+.gemini-error-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gemini-error-heading button {
+  border: 1px solid #d4a8a8;
+  border-radius: 7px;
+  padding: 7px 10px;
+  background: white;
+  color: #8b2929;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gemini-error-panel pre {
+  max-height: 180px;
+  margin: 10px 0 0;
+  padding: 10px;
+  overflow: auto;
+  border-radius: 7px;
+  direction: ltr;
+  background: #2a2020;
+  color: #ffecec;
+  font: 11px/1.5 monospace;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

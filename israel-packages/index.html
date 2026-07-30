@@ -33,7 +33,7 @@
   </main>
   <dialog id="addDialog">
     <form method="dialog" class="modal" id="addForm">
-      <button class="close" value="cancel" aria-label="סגירה">×</button>
+      <button class="close" type="button" aria-label="סגירה">×</button>
       <span class="eyebrow">תוספת חדשה</span><h2>את מי מוסיפים?</h2><p>נחפש תמונה מתאימה בוויקיפדיה לפני השמירה.</p>
       <label>שם מלא<input id="personName" required placeholder="למשל: גל גדות"></label>
       <label>חבילה<select id="targetPackage" required></select></label>
@@ -43,12 +43,16 @@
       <button type="button" class="secondary full" id="geminiGenerate" hidden>יצירת גרסת Gemini</button>
       <div id="geminiPreview" class="gemini-preview" hidden></div>
       <div id="geminiMessage" class="gemini-message" role="status" aria-live="polite" hidden></div>
+      <div id="geminiErrorPanel" class="gemini-error-panel" hidden>
+        <div class="gemini-error-heading"><b>פרטי השגיאה</b><button id="copyGeminiError" type="button">העתקת השגיאה</button></div>
+        <pre id="geminiErrorDetails"></pre>
+      </div>
       <button id="savePerson" class="primary full" type="submit" disabled>שמירת התוספת כטיוטה</button>
     </form>
   </dialog>
   <dialog id="packageDialog">
     <form method="dialog" class="modal" id="packageForm">
-      <button class="close" value="cancel">×</button><span class="eyebrow">חבילה חדשה</span><h2>יצירת חבילה</h2>
+      <button class="close" type="button" aria-label="סגירה">×</button><span class="eyebrow">חבילה חדשה</span><h2>יצירת חבילה</h2>
       <p>החבילה תישמר כטיוטה ותופיע לצד החבילות מה־manifest.</p>
       <label>שם החבילה בעברית<input id="packageName" required placeholder="למשל: אנשי תרבות ישראלים"></label>
       <button class="primary full" type="submit">יצירת החבילה</button>

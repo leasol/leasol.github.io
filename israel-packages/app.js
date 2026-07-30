@@ -1,5 +1,5 @@
 const STORAGE_KEY="israelPackageStudioDraftsV1";
-const state={data:null,packageId:null,filter:"all",query:"",selectedWiki:null,generatedImage:null,drafts:{packages:[],additions:[]}};
+const state={data:null,packageId:null,filter:"all",query:"",selectedWiki:null,generatedImage:null,lastGeminiError:"",drafts:{packages:[],additions:[]}};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function toast(message){const el=$("#toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2600)}
@@ -90,7 +90,13 @@ async function generateGeminiInBrowser(imageUrl){
     headers:{"Content-Type":"application/json","x-goog-api-key":key},
     body:JSON.stringify({model:"gemini-3.1-flash-image",input:[{type:"image",mime_type:blob.type||"image/jpeg",data:await blobToBase64(blob)},{type:"text",text:prompt}],response_format:{type:"image",mime_type:"image/png",image_size:"1K"}})
   });
-  const result=await response.json();if(!response.ok)throw new Error(result.error?.message||"Gemini דחה את הבקשה");
+  const raw=await response.text();
+  let result={};try{result=JSON.parse(raw)}catch{}
+  if(!response.ok){
+    const error=new Error(result.error?.message||`Gemini דחה את הבקשה (${response.status})`);
+    error.details=`HTTP ${response.status} ${response.statusText}\n\n${raw||"No response body"}`;
+    throw error;
+  }
   const image=findGeminiImage(result);if(!image)throw new Error("Gemini לא החזיר תמונה");
   return `data:${image.mimeType};base64,${image.data}`;
 }
@@ -99,28 +105,47 @@ async function generateGemini(imageUrl){
   if(key&&key!=="YOUR_GEMINI_API_KEY")return generateGeminiInBrowser(imageUrl);
   if(location.protocol==="http:"&&(location.hostname==="localhost"||location.hostname==="127.0.0.1")){
     const response=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:$("#personName").value.trim(),imageUrl})});
-    const data=await response.json();if(!response.ok)throw new Error(data.error||"עיבוד התמונה נכשל");
+    const raw=await response.text();let data={};try{data=JSON.parse(raw)}catch{}
+    if(!response.ok){const error=new Error(data.error||"עיבוד התמונה נכשל");error.details=data.details||`HTTP ${response.status} ${response.statusText}\n\n${raw}`;throw error}
     return data.imageUrl;
   }
   throw new Error("לא הוגדר מפתח Gemini בקובץ config.js");
 }
 $("#search").oninput=e=>{state.query=e.target.value;render()};
+$$("dialog .close").forEach(button=>button.onclick=()=>button.closest("dialog").close());
 $$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.filter=b.dataset.filter;render()});
-$("#openAdd").onclick=()=>{$("#targetPackage").value=state.packageId;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";$("#addDialog").showModal()};
+function clearGeminiError(){
+  state.lastGeminiError="";$("#geminiErrorPanel").hidden=true;$("#geminiErrorDetails").textContent="";
+}
+function showGeminiError(error){
+  const summary=error?.message||String(error);
+  const details=error?.details||error?.stack||summary;
+  state.lastGeminiError=`Gemini image generation error\n${new Date().toISOString()}\n\n${summary}\n\n${details}`;
+  $("#geminiMessage").textContent=`יצירת התמונה נכשלה: ${summary}`;
+  $("#geminiMessage").className="gemini-message error";$("#geminiMessage").hidden=false;
+  $("#geminiErrorDetails").textContent=state.lastGeminiError;$("#geminiErrorPanel").hidden=false;
+}
+$("#copyGeminiError").onclick=async()=>{
+  if(!state.lastGeminiError)return;
+  try{await navigator.clipboard.writeText(state.lastGeminiError)}
+  catch{const input=document.createElement("textarea");input.value=state.lastGeminiError;document.body.append(input);input.select();document.execCommand("copy");input.remove()}
+  $("#copyGeminiError").textContent="הועתק ✓";setTimeout(()=>$("#copyGeminiError").textContent="העתקת השגיאה",1600);
+};
+$("#openAdd").onclick=()=>{$("#targetPackage").value=state.packageId;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";clearGeminiError();$("#addDialog").showModal()};
 $("#newPackage").onclick=()=>$("#packageDialog").showModal();
 $("#wikiSearch").onclick=async()=>{
   const name=$("#personName").value.trim();if(!name){toast("יש להזין שם מלא");return}
-  $("#wikiStatus").hidden=false;$("#wikiResults").innerHTML="";$("#savePerson").disabled=true;$("#geminiGenerate").hidden=true;$("#geminiPreview").hidden=true;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";state.selectedWiki=null;state.generatedImage=null;
+  $("#wikiStatus").hidden=false;$("#wikiResults").innerHTML="";$("#savePerson").disabled=true;$("#geminiGenerate").hidden=true;$("#geminiPreview").hidden=true;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";clearGeminiError();state.selectedWiki=null;state.generatedImage=null;
   try{
     const results=await wikipedia(name);$("#wikiStatus").hidden=true;
     if(!results.length){$("#wikiResults").innerHTML=`<div class="empty">לא נמצאה תמונה. נסו שם מלא או איות אחר.</div>`;return}
     $("#wikiResults").innerHTML=results.map((r,i)=>`<button type="button" class="wiki-option" data-i="${i}"><img src="${r.imageUrl}" alt=""><b>${escapeHtml(r.title)}</b></button>`).join("");
-    $$(".wiki-option").forEach(b=>b.onclick=()=>{$$(".wiki-option").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");state.selectedWiki=results[+b.dataset.i];state.generatedImage=null;$("#geminiGenerate").hidden=false;$("#geminiPreview").hidden=true;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";$("#savePerson").disabled=false});
+    $$(".wiki-option").forEach(b=>b.onclick=()=>{$$(".wiki-option").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");state.selectedWiki=results[+b.dataset.i];state.generatedImage=null;$("#geminiGenerate").hidden=false;$("#geminiPreview").hidden=true;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";clearGeminiError();$("#savePerson").disabled=false});
   }catch(e){$("#wikiStatus").hidden=true;$("#geminiMessage").textContent=e.message;$("#geminiMessage").className="gemini-message error";$("#geminiMessage").hidden=false}
 };
 $("#geminiGenerate").onclick=async()=>{
   if(!state.selectedWiki)return;
-  $("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";
+  $("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";clearGeminiError();
   $("#wikiStatus").hidden=false;
   $("#wikiStatus b").textContent="Gemini מעבד את התמונה…";
   $("#wikiStatus span").textContent="יוצר איור קומיקס תוך שמירה על מראה האדם";
@@ -132,11 +157,7 @@ $("#geminiGenerate").onclick=async()=>{
     $("#geminiMessage").textContent="גרסת Gemini נוצרה בהצלחה. לאחר השמירה היא תוצג מול תמונת Wikipedia.";
     $("#geminiMessage").className="gemini-message success";
     $("#geminiMessage").hidden=false;
-  }catch(e){
-    $("#geminiMessage").textContent=`יצירת התמונה נכשלה: ${e.message}`;
-    $("#geminiMessage").className="gemini-message error";
-    $("#geminiMessage").hidden=false;
-  }
+  }catch(e){showGeminiError(e)}
   finally{$("#wikiStatus").hidden=true;$("#wikiStatus b").textContent="מחפש בוויקיפדיה…";$("#wikiStatus span").textContent="בודק ערכים ותמונות זמינות";$("#geminiGenerate").disabled=false;$("#savePerson").disabled=false}
 };
 $("#addForm").onsubmit=async e=>{
