@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, mimetypes, os, re, shutil, sys, urllib.parse, urllib.request
+import base64, json, mimetypes, os, re, shutil, sys, urllib.parse, urllib.request
 from datetime import datetime, timezone
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -76,6 +76,63 @@ def wikipedia_search(name):
         "imageUrl": (p.get("original") or p.get("thumbnail") or {}).get("source", "")
     } for p in pages if (p.get("original") or p.get("thumbnail"))]
 
+def find_generated_image(value):
+    if isinstance(value, dict):
+        if value.get("type") == "image" and value.get("data"):
+            return value["data"], value.get("mime_type", "image/png")
+        for child in value.values():
+            found = find_generated_image(child)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for child in value:
+            found = find_generated_image(child)
+            if found:
+                return found
+    return None
+
+def generate_gemini_image(image_url, name):
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("השרת הופעל ללא GEMINI_API_KEY")
+    source_req = urllib.request.Request(image_url, headers={"User-Agent": "LeaSol-Israel-Package-Editor/1.0"})
+    with urllib.request.urlopen(source_req, timeout=30) as source:
+        image_bytes = source.read()
+        mime_type = source.headers.get_content_type()
+    prompt = (
+        "Transform the provided image into comic-book-style, cell-shaded graphic novel art "
+        "with bold, clean outlines and a pure white background. Preserve the person's identity, "
+        "facial features, expression, pose, proportions, hairstyle, and clothing as faithfully "
+        "as possible. Stay true to the original image. Do not add, remove, or invent people or "
+        "objects. Do not add captions, speech bubbles, logos, watermarks, letters, symbols, or "
+        "text of any kind. NO TEXT WHATSOEVER."
+    )
+    payload = json.dumps({
+        "model": "gemini-3.1-flash-image",
+        "input": [
+            {"type": "image", "mime_type": mime_type, "data": base64.b64encode(image_bytes).decode()},
+            {"type": "text", "text": prompt},
+        ],
+        "response_format": {"type": "image", "mime_type": "image/png", "image_size": "1K"},
+    }).encode()
+    request = urllib.request.Request(
+        "https://generativelanguage.googleapis.com/v1beta/interactions",
+        data=payload,
+        method="POST",
+        headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(request, timeout=120) as response:
+        result = json.load(response)
+    generated = find_generated_image(result)
+    if not generated:
+        raise RuntimeError("Gemini לא החזיר תמונה")
+    encoded, output_mime = generated
+    ext = ".jpg" if output_mime == "image/jpeg" else ".png"
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    filename = f"gemini__{safe_name(name).replace(' ', '_')}__{stamp}{ext}"
+    (IMAGES / filename).write_bytes(base64.b64decode(encoded))
+    return f"temp/images/{filename}"
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(HERE), **kwargs)
@@ -118,6 +175,13 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length) or b"{}")
+            if self.path == "/api/gemini":
+                image_url = body.get("imageUrl", "")
+                name = safe_name(body.get("name", "person"))
+                if not image_url:
+                    return self.json_response({"error": "לא נבחרה תמונה לעיבוד"}, 400)
+                generated_url = generate_gemini_image(image_url, name)
+                return self.json_response({"imageUrl": generated_url}, 201)
             if self.path == "/api/packages":
                 name = safe_name(body.get("name", ""))
                 if not name: return self.json_response({"error": "יש להזין שם לחבילה"}, 400)
