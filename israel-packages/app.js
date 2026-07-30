@@ -103,12 +103,10 @@ async function generateGeminiInBrowser(imageUrl) {
 async function generateGemini(imageUrl) {
   const key = "AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA";
   if (key && key !== "AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA") return generateGeminiInBrowser(imageUrl);
-  if (location.protocol === "http:" && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
-    const response = await fetch("/api/gemini", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
-    const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
-    if (!response.ok) { const error = new Error(data.error || "עיבוד התמונה נכשל"); error.details = data.details || `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
-    return data.imageUrl;
-  }
+  const response = await fetch("/api/gemini", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
+  const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
+  if (!response.ok) { const error = new Error(data.error || "עיבוד התמונה נכשל"); error.details = data.details || `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
+  return data.imageUrl;
   throw new Error("לא הוגדר מפתח Gemini בקובץ config.js");
 }
 $("#search").oninput = e => { state.query = e.target.value; render() };
