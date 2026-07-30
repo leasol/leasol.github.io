@@ -22,7 +22,15 @@ function render(){
   $("#packages").innerHTML=state.data.packages.map(x=>`<button class="${x.id===p.id?"active":""}" data-id="${x.id}"><span>${escapeHtml(x.name)}${x.custom?" · טיוטה":""}</span><small>${x.count+state.data.additions.filter(a=>a.packageId===x.id).length}</small></button>`).join("");
   $("#packageTitle").textContent=p.name;$("#packageTag").textContent=p.custom?"חבילה חדשה · טיוטה":"מתוך ה־manifest";
   const existing=p.people.map(x=>({...x,new:false}));
-  const added=state.data.additions.filter(a=>a.packageId===p.id).map(a=>({key:a.id,name:a.name,original:a.imageUrl,gemini:a.imageUrl,new:true,wikipediaUrl:a.wikipediaUrl}));
+  const added=state.data.additions.filter(a=>a.packageId===p.id).map(a=>({
+    key:a.id,
+    name:a.name,
+    original:a.originalImageUrl||a.imageUrl,
+    gemini:a.imageUrl,
+    hasGemini:Boolean(a.originalImageUrl&&a.imageUrl!==a.originalImageUrl),
+    new:true,
+    wikipediaUrl:a.wikipediaUrl
+  }));
   let rows=state.filter==="existing"?existing:state.filter==="new"?added:[...added,...existing];
   if(state.query)rows=rows.filter(x=>(x.name+" "+x.key).toLowerCase().includes(state.query.toLowerCase()));
   $("#resultCount").textContent=`${rows.length} אנשים`;
@@ -39,9 +47,10 @@ function render(){
   });
 }
 function card(x,number){
-  const image=x.new
+  const originalLabel=x.new?"Wikipedia":"מקור";
+  const image=x.new&&!x.hasGemini
     ? `<div class="compare"><img src="${x.original}" alt="התמונה שנבחרה עבור ${escapeHtml(x.name)}" loading="lazy"></div>`
-    : `<div class="compare" style="--split:50%"><img src="${x.original}" alt="תמונת המקור של ${escapeHtml(x.name)}" loading="lazy"><img class="after" src="${x.gemini}" alt="תמונת Gemini של ${escapeHtml(x.name)}" loading="lazy"><div class="compare-line"></div><input type="range" min="0" max="100" value="50" aria-label="השוואת לפני ואחרי"><div class="labels"><span>מקור</span><span>Gemini</span></div></div>`;
+    : `<div class="compare" style="--split:50%"><img src="${x.original}" alt="תמונת המקור של ${escapeHtml(x.name)}" loading="lazy"><img class="after" src="${x.gemini}" alt="תמונת Gemini של ${escapeHtml(x.name)}" loading="lazy"><div class="compare-line"></div><input type="range" min="0" max="100" value="50" aria-label="השוואת לפני ואחרי"><div class="labels"><span>${originalLabel}</span><span>Gemini</span></div></div>`;
   const remove=x.new?`<button class="delete-person" type="button" data-id="${escapeHtml(x.key)}" aria-label="מחיקת ${escapeHtml(x.name)} מהטיוטה">מחיקה מהטיוטה</button>`:"";
   return `<article class="card ${x.new?"new":""}"><span class="badge">${x.new?"חדש · טיוטה":"קיים"}</span>${image}
     <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${x.new?"נשמר בטיוטת הדפדפן":escapeHtml(x.key)}</span>${remove}</div></article>`
@@ -97,20 +106,21 @@ async function generateGemini(imageUrl){
 }
 $("#search").oninput=e=>{state.query=e.target.value;render()};
 $$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.filter=b.dataset.filter;render()});
-$("#openAdd").onclick=()=>{$("#targetPackage").value=state.packageId;$("#addDialog").showModal()};
+$("#openAdd").onclick=()=>{$("#targetPackage").value=state.packageId;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";$("#addDialog").showModal()};
 $("#newPackage").onclick=()=>$("#packageDialog").showModal();
 $("#wikiSearch").onclick=async()=>{
   const name=$("#personName").value.trim();if(!name){toast("יש להזין שם מלא");return}
-  $("#wikiStatus").hidden=false;$("#wikiResults").innerHTML="";$("#savePerson").disabled=true;$("#geminiGenerate").hidden=true;$("#geminiPreview").hidden=true;state.selectedWiki=null;state.generatedImage=null;
+  $("#wikiStatus").hidden=false;$("#wikiResults").innerHTML="";$("#savePerson").disabled=true;$("#geminiGenerate").hidden=true;$("#geminiPreview").hidden=true;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";state.selectedWiki=null;state.generatedImage=null;
   try{
     const results=await wikipedia(name);$("#wikiStatus").hidden=true;
     if(!results.length){$("#wikiResults").innerHTML=`<div class="empty">לא נמצאה תמונה. נסו שם מלא או איות אחר.</div>`;return}
     $("#wikiResults").innerHTML=results.map((r,i)=>`<button type="button" class="wiki-option" data-i="${i}"><img src="${r.imageUrl}" alt=""><b>${escapeHtml(r.title)}</b></button>`).join("");
-    $$(".wiki-option").forEach(b=>b.onclick=()=>{$$(".wiki-option").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");state.selectedWiki=results[+b.dataset.i];state.generatedImage=null;$("#geminiGenerate").hidden=false;$("#geminiPreview").hidden=true;$("#savePerson").disabled=false});
-  }catch(e){$("#wikiStatus").hidden=true;toast(e.message)}
+    $$(".wiki-option").forEach(b=>b.onclick=()=>{$$(".wiki-option").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");state.selectedWiki=results[+b.dataset.i];state.generatedImage=null;$("#geminiGenerate").hidden=false;$("#geminiPreview").hidden=true;$("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";$("#savePerson").disabled=false});
+  }catch(e){$("#wikiStatus").hidden=true;$("#geminiMessage").textContent=e.message;$("#geminiMessage").className="gemini-message error";$("#geminiMessage").hidden=false}
 };
 $("#geminiGenerate").onclick=async()=>{
   if(!state.selectedWiki)return;
+  $("#geminiMessage").hidden=true;$("#geminiMessage").textContent="";
   $("#wikiStatus").hidden=false;
   $("#wikiStatus b").textContent="Gemini מעבד את התמונה…";
   $("#wikiStatus span").textContent="יוצר איור קומיקס תוך שמירה על מראה האדם";
@@ -118,14 +128,21 @@ $("#geminiGenerate").onclick=async()=>{
   try{
     state.generatedImage=await generateGemini(state.selectedWiki.imageUrl);
     $("#geminiPreview").innerHTML=`<span>תוצאת Gemini</span><img src="${state.generatedImage}" alt="גרסת Gemini שנוצרה">`;
-    $("#geminiPreview").hidden=false;toast("גרסת Gemini מוכנה");
-  }catch(e){toast(e.message)}
+    $("#geminiPreview").hidden=false;
+    $("#geminiMessage").textContent="גרסת Gemini נוצרה בהצלחה. לאחר השמירה היא תוצג מול תמונת Wikipedia.";
+    $("#geminiMessage").className="gemini-message success";
+    $("#geminiMessage").hidden=false;
+  }catch(e){
+    $("#geminiMessage").textContent=`יצירת התמונה נכשלה: ${e.message}`;
+    $("#geminiMessage").className="gemini-message error";
+    $("#geminiMessage").hidden=false;
+  }
   finally{$("#wikiStatus").hidden=true;$("#wikiStatus b").textContent="מחפש בוויקיפדיה…";$("#wikiStatus span").textContent="בודק ערכים ותמונות זמינות";$("#geminiGenerate").disabled=false;$("#savePerson").disabled=false}
 };
 $("#addForm").onsubmit=async e=>{
   e.preventDefault();if(!state.selectedWiki)return;
   state.drafts.additions.push({id:crypto.randomUUID(),packageId:$("#targetPackage").value,name:$("#personName").value.trim(),imageUrl:state.generatedImage||state.selectedWiki.imageUrl,originalImageUrl:state.selectedWiki.imageUrl,wikipediaUrl:state.selectedWiki.pageUrl,createdAt:new Date().toISOString()});
-  saveDrafts();$("#addDialog").close();e.target.reset();$("#wikiResults").innerHTML="";$("#geminiGenerate").hidden=true;$("#geminiPreview").hidden=true;state.selectedWiki=null;state.generatedImage=null;await load();toast("האדם נוסף ונשמר בטיוטת הדפדפן");
+  saveDrafts();$("#addDialog").close();e.target.reset();$("#wikiResults").innerHTML="";$("#geminiGenerate").hidden=true;$("#geminiPreview").hidden=true;$("#geminiMessage").hidden=true;state.selectedWiki=null;state.generatedImage=null;await load();toast("האדם נוסף ונשמר בטיוטת הדפדפן");
 };
 $("#packageForm").onsubmit=async e=>{
   e.preventDefault();const name=$("#packageName").value.trim();const id="custom_"+Date.now();

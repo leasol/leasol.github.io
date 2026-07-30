@@ -1,3 +1,7 @@
+[hidden] {
+  display: none !important;
+}
+
 .delete-person {
   display: block;
   width: 100%;
@@ -44,4 +48,25 @@
   object-fit: contain;
   border-radius: 8px;
   background: white;
+}
+
+.gemini-message {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.gemini-message.success {
+  border: 1px solid #a7d2bd;
+  background: #edf8f2;
+  color: #07583e;
+}
+
+.gemini-message.error {
+  border: 1px solid #e0adad;
+  background: #fff1f1;
+  color: #9c2f2f;
 }
