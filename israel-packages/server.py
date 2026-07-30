@@ -92,7 +92,7 @@ def find_generated_image(value):
     return None
 
 def generate_gemini_image(image_url, name):
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    api_key = "AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA"
     if not api_key:
         raise RuntimeError("השרת הופעל ללא GEMINI_API_KEY")
     source_req = urllib.request.Request(image_url, headers={"User-Agent": "LeaSol-Israel-Package-Editor/1.0"})

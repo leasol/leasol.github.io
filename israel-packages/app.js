@@ -81,7 +81,7 @@ async function blobToBase64(blob){
 }
 async function generateGeminiInBrowser(imageUrl){
   const key=window.ISRAEL_PACKAGES_CONFIG?.geminiApiKey?.trim();
-  if(!key||key==="YOUR_GEMINI_API_KEY")throw new Error("לא הוגדר מפתח Gemini בקובץ config.js");
+  if(!key||key==="AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA")throw new Error("לא הוגדר מפתח Gemini בקובץ config.js");
   const source=await fetch(imageUrl);if(!source.ok)throw new Error("לא ניתן להוריד את תמונת Wikipedia");
   const blob=await source.blob();
   const prompt="Transform the provided image into comic-book-style, cell-shaded graphic novel art with bold, clean outlines and a pure white background. Preserve the person's identity, facial features, expression, pose, proportions, hairstyle, and clothing as faithfully as possible. Stay true to the original image. Do not add, remove, or invent people or objects. Do not add captions, speech bubbles, logos, watermarks, letters, symbols, or text of any kind. NO TEXT WHATSOEVER.";
@@ -102,7 +102,7 @@ async function generateGeminiInBrowser(imageUrl){
 }
 async function generateGemini(imageUrl){
   const key=window.ISRAEL_PACKAGES_CONFIG?.geminiApiKey?.trim();
-  if(key&&key!=="YOUR_GEMINI_API_KEY")return generateGeminiInBrowser(imageUrl);
+  if(key&&key!=="AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA")return generateGeminiInBrowser(imageUrl);
   if(location.protocol==="http:"&&(location.hostname==="localhost"||location.hostname==="127.0.0.1")){
     const response=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:$("#personName").value.trim(),imageUrl})});
     const raw=await response.text();let data={};try{data=JSON.parse(raw)}catch{}
