@@ -101,7 +101,7 @@ async function generateGeminiInBrowser(imageUrl) {
   return `data:${image.mimeType};base64,${image.data}`;
 }
 async function generateGemini(imageUrl) {
-  const key = "Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA";
+  const key = "AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA";
   if (key && key !== "AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA") return generateGeminiInBrowser(imageUrl);
   if (location.protocol === "http:" && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
     const response = await fetch("/api/gemini", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
