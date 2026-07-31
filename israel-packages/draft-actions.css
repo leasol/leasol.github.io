@@ -22,6 +22,11 @@
   text-align: right;
 }
 
+.wiki-option img {
+  object-fit: contain;
+  background: #f4f4ef;
+}
+
 .delete-person {
   display: block;
   width: 100%;
