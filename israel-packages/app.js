@@ -63,10 +63,14 @@ async function wikipedia(name) {
   return Object.values(raw.query?.pages || {}).sort((a, b) => (a.index || 999) - (b.index || 999)).map(p => ({ title: p.title, description: (p.extract || "").slice(0, 240), pageUrl: p.fullurl, imageUrl: (p.original || p.thumbnail || {}).source })).filter(x => x.imageUrl);
 }
 async function webImages(name) {
-  if (location.protocol !== "http:" || !["localhost", "127.0.0.1"].includes(location.hostname)) {
-    throw new Error("חיפוש אינטרנט זמין דרך השרת המקומי בלבד");
-  }
-  const response = await fetch("/api/web-search?name=" + encodeURIComponent(name));
+  const local = location.protocol === "http:" && ["localhost", "127.0.0.1"].includes(location.hostname);
+  const endpoint = local
+    ? "/api/web-search"
+    : "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/web-search";
+  const options = local ? {} : {
+    headers: { "OAI-Sites-Authorization": "Bearer MohaGTH8g09N7K2_lCN4jFKFFS8fZEwJsJm8eVr1Dao" }
+  };
+  const response = await fetch(endpoint + "?name=" + encodeURIComponent(name), options);
   const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
   if (!response.ok) throw new Error(data.error || `חיפוש האינטרנט נכשל (${response.status})`);
   return data.results || [];
