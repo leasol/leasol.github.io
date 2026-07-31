@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import base64, json, mimetypes, os, re, shutil, sys, urllib.error, urllib.parse, urllib.request
+import base64, http.cookiejar, json, mimetypes, os, re, shutil, sys, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timezone
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -76,6 +76,71 @@ def wikipedia_search(name):
         "imageUrl": (p.get("original") or p.get("thumbnail") or {}).get("source", "")
     } for p in pages if (p.get("original") or p.get("thumbnail"))]
 
+WEB_SEARCH_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/json,image/avif,image/webp,image/png,image/jpeg,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+def web_image_score(result, query):
+    title = result.get("title") or ""
+    image_url = result.get("image") or ""
+    source = result.get("url") or ""
+    haystack = " ".join([title, image_url, source]).lower()
+    words = [word for word in re.findall(r"[a-z0-9]+", query.lower()) if len(word) > 2]
+    score = 5 * sum(1 for word in words if word in haystack)
+    width, height = int(result.get("width") or 0), int(result.get("height") or 0)
+    if width >= 700 and height >= 700:
+        score += 8
+    elif width >= 400 and height >= 400:
+        score += 5
+    if any(domain in haystack for domain in ("wikimedia.org", "static.wikia", "nocookie.net", "tmdb.org", "media-amazon.com")):
+        score += 4
+    if any(term in haystack for term in ("watermark", "alamy", "gettyimages", "shutterstock", "dreamstime", "123rf", "depositphotos", "pinterest", "pinimg", "logo", "poster", "wallpaper")):
+        score -= 10
+    return score
+
+def web_image_search(query, limit=24):
+    jar = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+    landing_url = "https://duckduckgo.com/?" + urllib.parse.urlencode({"q": query, "iax": "images", "ia": "images"})
+    landing = opener.open(urllib.request.Request(landing_url, headers=WEB_SEARCH_HEADERS), timeout=20).read().decode("utf-8", "replace")
+    match = None
+    for pattern in (r'vqd=["\']([^"\']+)', r"vqd=([^&\"']+)", r'"vqd":"([^"]+)"'):
+        match = re.search(pattern, landing)
+        if match:
+            break
+    if not match:
+        raise RuntimeError("DuckDuckGo לא החזיר אסימון חיפוש")
+    api_url = "https://duckduckgo.com/i.js?" + urllib.parse.urlencode({
+        "l": "us-en", "o": "json", "q": query, "vqd": match.group(1), "f": ",,,", "p": "1",
+    })
+    request = urllib.request.Request(api_url, headers={**WEB_SEARCH_HEADERS, "Referer": "https://duckduckgo.com/"})
+    with opener.open(request, timeout=20) as response:
+        raw_results = json.load(response).get("results", [])
+    results = []
+    seen = set()
+    for item in raw_results:
+        image_url = item.get("image")
+        if not image_url or image_url in seen:
+            continue
+        seen.add(image_url)
+        score = web_image_score(item, query)
+        if score < -6:
+            continue
+        results.append({
+            "title": item.get("title") or "",
+            "description": item.get("url") or "",
+            "pageUrl": item.get("url") or "",
+            "imageUrl": image_url,
+            "thumbnailUrl": item.get("thumbnail") or image_url,
+            "width": item.get("width"),
+            "height": item.get("height"),
+            "score": score,
+        })
+    results.sort(key=lambda item: item["score"], reverse=True)
+    return results[:limit]
+
 def find_generated_image(value):
     if isinstance(value, dict):
         if value.get("type") == "image" and value.get("data"):
@@ -92,7 +157,7 @@ def find_generated_image(value):
     return None
 
 def generate_gemini_image(image_url, name):
-    api_key = "AQ.Ab8RN6IGBPUqd00QRayL35SQozbcb19DsTK3EJiejuJlFdpmoA"
+    api_key = "AQ.Ab8RN6Kr7VN5DXvI4FQGHKBLY-DM1p7H_ztr8DCNEBiRjsPZsg"
     if not api_key:
         raise RuntimeError("השרת הופעל ללא GEMINI_API_KEY")
     source_req = urllib.request.Request(image_url, headers={"User-Agent": "LeaSol-Israel-Package-Editor/1.0"})
@@ -159,6 +224,15 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.json_response({"results": wikipedia_search(name)})
             except Exception as e:
                 return self.json_response({"error": f"החיפוש בוויקיפדיה נכשל: {e}"}, 502)
+        if parsed.path == "/api/web-search":
+            name = urllib.parse.parse_qs(parsed.query).get("name", [""])[0].strip()
+            if not name:
+                return self.json_response({"error": "יש להזין שם לחיפוש"}, 400)
+            query = name if re.search(r"\b(photo|portrait|celebrity|actor|singer|israeli)\b", name, re.I) else f"{name} celebrity portrait"
+            try:
+                return self.json_response({"results": web_image_search(query), "query": query})
+            except Exception as e:
+                return self.json_response({"error": f"חיפוש התמונות נכשל: {e}", "results": []}, 502)
         if parsed.path.startswith("/media/"):
             rel = urllib.parse.unquote(parsed.path[len("/media/"):])
             candidate = (ACTORQUIZ / rel).resolve()

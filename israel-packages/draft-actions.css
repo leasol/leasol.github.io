@@ -2,6 +2,26 @@
   display: none !important;
 }
 
+.image-search-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.image-search-actions button {
+  width: 100%;
+}
+
+.wiki-option small {
+  display: block;
+  padding: 0 7px 7px;
+  color: #718078;
+  direction: ltr;
+  font-size: 10px;
+  text-align: right;
+}
+
 .delete-person {
   display: block;
   width: 100%;

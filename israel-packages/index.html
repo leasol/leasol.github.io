@@ -37,7 +37,10 @@
       <span class="eyebrow">תוספת חדשה</span><h2>את מי מוסיפים?</h2><p>נחפש תמונה מתאימה בוויקיפדיה לפני השמירה.</p>
       <label>שם מלא<input id="personName" required placeholder="למשל: גל גדות"></label>
       <label>חבילה<select id="targetPackage" required></select></label>
-      <button type="button" class="primary full" id="wikiSearch">חיפוש תמונה בוויקיפדיה</button>
+      <div class="image-search-actions">
+        <button type="button" class="primary" id="wikiSearch">חיפוש בוויקיפדיה</button>
+        <button type="button" class="secondary" id="webSearch">חיפוש באינטרנט</button>
+      </div>
       <div id="wikiStatus" class="wiki-status" hidden><i></i><div><b>מחפש בוויקיפדיה…</b><span>בודק ערכים ותמונות זמינות</span></div></div>
       <div id="wikiResults" class="wiki-results"></div>
       <button type="button" class="secondary full" id="geminiGenerate" hidden>יצירת גרסת Gemini</button>
