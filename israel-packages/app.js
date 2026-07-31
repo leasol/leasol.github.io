@@ -159,21 +159,32 @@ $("#copyGeminiError").onclick = async () => {
   catch { const input = document.createElement("textarea"); input.value = state.lastGeminiError; document.body.append(input); input.select(); document.execCommand("copy"); input.remove() }
   $("#copyGeminiError").textContent = "הועתק ✓"; setTimeout(() => $("#copyGeminiError").textContent = "העתקת השגיאה", 1600);
 };
-$("#openAdd").onclick = () => { $("#targetPackage").value = state.packageId; $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError(); $("#addDialog").showModal() };
+$("#openAdd").onclick = () => { $("#targetPackage").value = state.packageId; $("#webSearchRefine").hidden = true; $("#webSearchExtra").value = ""; $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError(); $("#addDialog").showModal() };
 $("#newPackage").onclick = () => $("#packageDialog").showModal();
 $("#wikiSearch").onclick = async () => {
   await runImageSearch("wikipedia");
 };
 $("#webSearch").onclick = async () => {
+  $("#webSearchRefine").hidden = false;
+  await runImageSearch("web");
+};
+$("#webSearchRefineButton").onclick = async () => {
+  await runImageSearch("web");
+};
+$("#webSearchExtra").onkeydown = async event => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
   await runImageSearch("web");
 };
 async function runImageSearch(source) {
   const name = $("#personName").value.trim(); if (!name) { toast("יש להזין שם מלא"); return }
+  const extra = source === "web" ? $("#webSearchExtra").value.trim() : "";
+  const searchQuery = extra ? `${name} ${extra}` : name;
   $("#wikiStatus b").textContent=source==="web"?"מחפש תמונות באינטרנט…":"מחפש בוויקיפדיה…";
-  $("#wikiStatus span").textContent=source==="web"?"בודק תוצאות מ־DuckDuckGo ומסנן תמונות לא מתאימות":"בודק ערכים ותמונות זמינות";
+  $("#wikiStatus span").textContent=source==="web"?`DuckDuckGo: ${searchQuery}`:"בודק ערכים ותמונות זמינות";
   $("#wikiStatus").hidden = false; $("#wikiResults").innerHTML = ""; $("#savePerson").disabled = true; $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true; $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError(); state.selectedWiki = null; state.generatedImage = null;
   try {
-    const results = source==="web" ? await webImages(name) : await wikipedia(name); $("#wikiStatus").hidden = true;
+    const results = source==="web" ? await webImages(searchQuery) : await wikipedia(name); $("#wikiStatus").hidden = true;
     if (!results.length) { $("#wikiResults").innerHTML = `<div class="empty">לא נמצאה תמונה. נסו שם מלא או איות אחר.</div>`; return }
     $("#wikiResults").innerHTML = results.map((r, i) => `<button type="button" class="wiki-option" data-i="${i}"><img src="${r.thumbnailUrl||r.imageUrl}" alt=""><b>${escapeHtml(r.title)}</b>${r.width&&r.height?`<small>${r.width}×${r.height}</small>`:""}</button>`).join("");
     $$(".wiki-option").forEach(b => b.onclick = () => { $$(".wiki-option").forEach(x => x.classList.remove("selected")); b.classList.add("selected"); state.selectedWiki = results[+b.dataset.i]; state.generatedImage = null; $("#geminiGenerate").hidden = false; $("#geminiPreview").hidden = true; $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError(); $("#savePerson").disabled = false });
