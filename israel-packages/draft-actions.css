@@ -2,6 +2,28 @@
   display: none !important;
 }
 
+.studio-version {
+  direction: ltr;
+  padding: 5px 8px;
+  border: 1px solid #cfded7;
+  border-radius: 999px;
+  background: #edf5f1;
+  color: #0b6547;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+@media (max-width: 480px) {
+  .brand .studio-title {
+    display: none;
+  }
+
+  .brand span.studio-version {
+    display: inline-block;
+  }
+}
+
 .image-search-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
