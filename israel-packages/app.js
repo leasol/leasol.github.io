@@ -92,16 +92,31 @@ async function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+async function fetchImageBlob(imageUrl) {
+  try {
+    const direct = await fetch(imageUrl);
+    if (direct.ok) return direct.blob();
+  } catch { }
+  const proxyUrl = "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/image-proxy?url=" + encodeURIComponent(imageUrl);
+  const proxied = await fetch(proxyUrl, {
+    headers: { "OAI-Sites-Authorization": "Bearer MohaGTH8g09N7K2_lCN4jFKFFS8fZEwJsJm8eVr1Dao" }
+  });
+  if (!proxied.ok) {
+    const raw = await proxied.text();
+    let message = ""; try { message = JSON.parse(raw).error || "" } catch { }
+    throw new Error(message || `לא ניתן להוריד את תמונת המקור (${proxied.status})`);
+  }
+  return proxied.blob();
+}
 async function generateGeminiInBrowser(imageUrl) {
   const key = window.ISRAEL_PACKAGES_CONFIG?.geminiApiKey?.trim();
   if (!key || key === "YOUR_GEMINI_API_KEY") throw new Error("לא הוגדר מפתח Gemini בקובץ config.js");
-  const source = await fetch(imageUrl); if (!source.ok) throw new Error("לא ניתן להוריד את תמונת Wikipedia");
-  const blob = await source.blob();
+  const blob = await fetchImageBlob(imageUrl);
   const prompt = "Transform the provided image into comic-book-style, cell-shaded graphic novel art with bold, clean outlines and a pure white background. Preserve the person's identity, facial features, expression, pose, proportions, hairstyle, and clothing as faithfully as possible. Stay true to the original image. Do not add, remove, or invent people or objects. Do not add captions, speech bubbles, logos, watermarks, letters, symbols, or text of any kind. NO TEXT WHATSOEVER.";
   const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({ model: "gemini-3.1-flash-image", input: [{ type: "image", mime_type: blob.type || "image/jpeg", data: await blobToBase64(blob) }, { type: "text", text: prompt }], response_format: { type: "image", mime_type: "image/png", image_size: "1K" } })
+    body: JSON.stringify({ model: "gemini-3.1-flash-image", input: [{ type: "image", mime_type: blob.type || "image/jpeg", data: await blobToBase64(blob) }, { type: "text", text: prompt }], response_format: { type: "image", mime_type: "image/jpeg", image_size: "1K" } })
   });
   const raw = await response.text();
   let result = {}; try { result = JSON.parse(raw) } catch { }
