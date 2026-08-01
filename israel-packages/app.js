@@ -244,6 +244,11 @@ function showExistingPeople() {
 let existingPeopleTimer;
 $("#personName").oninput = () => { clearTimeout(existingPeopleTimer); existingPeopleTimer = setTimeout(showExistingPeople, 350); };
 $("#personName").onchange = showExistingPeople;
+$("#personName").onkeydown = async event => {
+  if (event.key !== "Enter" || event.isComposing) return;
+  event.preventDefault();
+  await runImageSearch("wikipedia");
+};
 $("#cardActionForm").onsubmit = async e => {
   e.preventDefault();
   const operation = state.cardAction; if (!operation) return;
