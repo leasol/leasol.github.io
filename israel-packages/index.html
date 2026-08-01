@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>סטודיו החבילות הישראליות</title>
   <meta name="description" content="ניהול והשוואת תמונות בחבילות הישראליות של Actor Quiz">
-  <link rel="stylesheet" href="style.css?v=2026.08.01.2">
-  <link rel="stylesheet" href="draft-actions.css?v=2026.08.01.2">
+  <link rel="stylesheet" href="style.css?v=2026.08.01.3">
+  <link rel="stylesheet" href="draft-actions.css?v=2026.08.01.3">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#"><span class="mark">ל</span><span class="studio-title">סטודיו החבילות</span><span class="studio-version" title="גרסת סטודיו החבילות">v2026.08.01.2</span></a>
+    <a class="brand" href="#"><span class="mark">ל</span><span class="studio-title">סטודיו החבילות</span><span class="studio-version" title="גרסת סטודיו החבילות">v2026.08.01.3</span></a>
     <div class="top-actions"><span id="saveState" class="save-state"><i></i> הטיוטות נשמרות בדפדפן</span><button class="secondary" id="exportDraft">ייצוא טיוטה</button><button class="primary" id="openAdd">＋ הוספת אדם</button></div>
   </header>
   <main>
@@ -35,7 +35,7 @@
   <dialog id="addDialog">
     <form method="dialog" class="modal" id="addForm">
       <button class="close" type="button" aria-label="סגירה">×</button>
-      <span class="eyebrow">תוספת חדשה</span><h2>את מי מוסיפים?</h2><p>נחפש תמונה מתאימה בוויקיפדיה לפני השמירה.</p>
+      <span class="eyebrow" id="addDialogEyebrow">תוספת חדשה</span><h2 id="addDialogTitle">את מי מוסיפים?</h2><p id="addDialogDescription">נחפש תמונה מתאימה בוויקיפדיה לפני השמירה.</p>
       <label>שם מלא<input id="personName" required placeholder="למשל: גל גדות" autocomplete="off"></label>
       <div id="existingPeople" class="existing-people" hidden aria-live="polite"></div>
       <fieldset class="package-picker" id="targetPackages" required><legend>חבילות</legend><span>אפשר לבחור יותר מחבילה אחת</span><div class="package-options"></div></fieldset>
@@ -64,7 +64,6 @@
       <button class="close" type="button" aria-label="סגירה">×</button>
       <span class="eyebrow" id="cardActionEyebrow">עריכת אדם</span><h2 id="cardActionTitle">פעולה</h2>
       <p id="cardActionDescription"></p>
-      <label id="replacementImageField" hidden>כתובת התמונה החדשה<input id="replacementImageUrl" type="url" placeholder="https://..."></label>
       <label id="destinationPackageField" hidden>חבילת היעד<select id="destinationPackage"></select></label>
       <button class="primary full" id="saveCardAction" type="submit">שמירה כטיוטה</button>
     </form>
@@ -78,7 +77,7 @@
     </form>
   </dialog>
   <div id="toast" role="status"></div>
-  <script src="config.js?v=2026.08.01.2"></script>
-  <script src="app.js?v=2026.08.01.2"></script>
+  <script src="config.js?v=2026.08.01.3"></script>
+  <script src="app.js?v=2026.08.01.3"></script>
 </body>
 </html>

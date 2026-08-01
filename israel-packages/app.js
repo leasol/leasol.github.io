@@ -1,12 +1,12 @@
 const STORAGE_KEY = "israelPackageStudioDraftsV1";
-const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, removedGemini: [] } };
+const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, geminiOverrides: {}, removedGemini: [] } };
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 2600) }
 function saveDrafts() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.drafts)) }
 function normalizeDrafts() {
   state.drafts.packages ||= []; state.drafts.additions ||= [];
-  state.drafts.removals ||= []; state.drafts.imageOverrides ||= {}; state.drafts.removedGemini ||= [];
+  state.drafts.removals ||= []; state.drafts.imageOverrides ||= {}; state.drafts.geminiOverrides ||= {}; state.drafts.removedGemini ||= [];
 }
 function cardId(x) { return x.new ? `addition:${x.id}` : `base:${x.packageId}:${x.key}` }
 function isRemoved(x) { return state.drafts.removals.includes(cardId(x)) }
@@ -52,7 +52,8 @@ function render() {
   let rows = state.filter === "existing" ? existing : state.filter === "new" ? added : [...added, ...existing];
   rows = rows.filter(x => !isRemoved(x)).map(x => {
     const geminiRemoved = state.drafts.removedGemini.includes(cardId(x));
-    return { ...x, original: state.drafts.imageOverrides[cardId(x)] || x.original, gemini: geminiRemoved ? null : x.gemini, hasGemini: x.hasGemini && !geminiRemoved };
+    const gemini = state.drafts.geminiOverrides[cardId(x)] || (geminiRemoved ? null : x.gemini);
+    return { ...x, original: state.drafts.imageOverrides[cardId(x)] || x.original, gemini, hasGemini: Boolean(gemini) };
   });
   if (state.filter === "missingGemini") rows = rows.filter(x => !x.hasGemini);
   if (state.query) rows = rows.filter(x => (x.name + " " + x.key).toLowerCase().includes(state.query.toLowerCase()));
@@ -166,6 +167,11 @@ async function generateGemini(imageUrl) {
 }
 $("#search").oninput = e => { state.query = e.target.value; render() };
 $$("dialog .close").forEach(button => button.onclick = () => button.closest("dialog").close());
+$("#addDialog").addEventListener("close", () => {
+  if (state.cardAction?.action === "replace") state.cardAction = null;
+  $("#personName").readOnly = false;
+  $("#targetPackages").hidden = false;
+});
 $$(".tabs button").forEach(b => b.onclick = () => { $$(".tabs button").forEach(x => x.classList.remove("active")); $("#showMissingGemini").classList.remove("active"); b.classList.add("active"); state.filter = b.dataset.filter; render() });
 $("#showMissingGemini").onclick = () => { state.filter = state.filter === "missingGemini" ? "all" : "missingGemini"; $$(".tabs button").forEach(x => x.classList.toggle("active", state.filter === "all" && x.dataset.filter === "all")); $("#showMissingGemini").classList.toggle("active", state.filter === "missingGemini"); render() };
 function clearGeminiError() {
@@ -193,16 +199,17 @@ function additionFromCard(x, packageId) {
   };
 }
 function openCardAction(action, person) {
+  if (action === "replace") {
+    openReplacementSearch(person);
+    return;
+  }
   state.cardAction = { action, person };
   const labels = { replace: "החלפת תמונה", move: "העברה לחבילה", copy: "העתקה לחבילה", remove: "הסרת אדם" };
   $("#cardActionTitle").textContent = labels[action];
   $("#cardActionEyebrow").textContent = person.name;
-  $("#replacementImageField").hidden = action !== "replace";
   $("#destinationPackageField").hidden = !["move", "copy"].includes(action);
-  $("#replacementImageUrl").value = person.original || "";
   $("#destinationPackage").value = state.data.packages.find(p => p.id !== person.packageId)?.id || person.packageId;
   const descriptions = {
-    replace: "הזינו כתובת לתמונת המקור החדשה. תמונת ה־Gemini הקיימת תוסר מהטיוטה.",
     move: "האדם יוסר מהחבילה הנוכחית ויופיע בחבילת היעד.",
     copy: "עותק של האדם יתווסף לחבילת היעד, והמקור יישאר כאן.",
     remove: "האדם יוסר מחבילה זו בטיוטה. אפשר לשחזר באמצעות מחיקת הטיוטות בדפדפן."
@@ -210,6 +217,26 @@ function openCardAction(action, person) {
   $("#cardActionDescription").textContent = descriptions[action];
   $("#saveCardAction").textContent = action === "remove" ? "הסרה כטיוטה" : "שמירה כטיוטה";
   $("#cardActionDialog").showModal();
+}
+function resetImageSearchState() {
+  $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = "";
+  $("#webSearchRefine").hidden = true; $("#webSearchExtra").value = "";
+  $("#wikiResults").innerHTML = ""; $("#wikiStatus").hidden = true;
+  $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true;
+  $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = "";
+  $("#savePerson").disabled = true; clearGeminiError();
+  state.selectedWiki = null; state.generatedImage = null;
+}
+function openReplacementSearch(person) {
+  state.cardAction = { action: "replace", person };
+  resetImageSearchState();
+  $("#addDialogEyebrow").textContent = "עריכת אדם";
+  $("#addDialogTitle").textContent = "החלפת תמונה";
+  $("#addDialogDescription").textContent = "חפשו תמונה חדשה בוויקיפדיה או באינטרנט, ואפשר גם ליצור עיבוד Gemini חדש.";
+  $("#personName").value = person.name; $("#personName").readOnly = true;
+  $("#targetPackages").hidden = true;
+  $("#savePerson").textContent = "שמירת התמונה החדשה";
+  $("#addDialog").showModal();
 }
 function normalizeName(value) { return String(value).toLocaleLowerCase("he").replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " "); }
 function findExistingPeople(value) {
@@ -253,12 +280,7 @@ $("#cardActionForm").onsubmit = async e => {
   e.preventDefault();
   const operation = state.cardAction; if (!operation) return;
   const { action, person } = operation;
-  if (action === "replace") {
-    const url = $("#replacementImageUrl").value.trim();
-    if (!url) { toast("יש להזין כתובת תמונה"); return; }
-    state.drafts.imageOverrides[cardId(person)] = url;
-    state.drafts.removedGemini = [...new Set([...state.drafts.removedGemini, cardId(person)])];
-  } else if (action === "remove") {
+  if (action === "remove") {
     if (!confirm(`להסיר את ${person.name} מחבילה זו?`)) return;
     if (person.new) state.drafts.additions = state.drafts.additions.filter(item => item.id !== person.id);
     else state.drafts.removals = [...new Set([...state.drafts.removals, cardId(person)])];
@@ -274,9 +296,16 @@ $("#cardActionForm").onsubmit = async e => {
     }
   }
   saveDrafts(); $("#cardActionDialog").close(); state.cardAction = null; await load();
-  toast(action === "remove" ? "האדם הוסר בטיוטה" : action === "move" ? "האדם הועבר בטיוטה" : action === "copy" ? "העתק נוסף בטיוטה" : "התמונה הוחלפה בטיוטה");
+  toast(action === "remove" ? "האדם הוסר בטיוטה" : action === "move" ? "האדם הועבר בטיוטה" : "העתק נוסף בטיוטה");
 };
-$("#openAdd").onclick = () => { $("#targetPackages .package-options").innerHTML = packageOptions([state.packageId]); $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = ""; $("#webSearchRefine").hidden = true; $("#webSearchExtra").value = ""; $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError(); $("#addDialog").showModal() };
+$("#openAdd").onclick = () => {
+  state.cardAction = null; resetImageSearchState();
+  $("#addDialogEyebrow").textContent = "תוספת חדשה"; $("#addDialogTitle").textContent = "את מי מוסיפים?";
+  $("#addDialogDescription").textContent = "נחפש תמונה מתאימה בוויקיפדיה לפני השמירה.";
+  $("#personName").value = ""; $("#personName").readOnly = false;
+  $("#targetPackages").hidden = false; $("#targetPackages .package-options").innerHTML = packageOptions([state.packageId]);
+  $("#savePerson").textContent = "שמירת התוספת כטיוטה"; $("#addDialog").showModal();
+};
 $("#newPackage").onclick = () => $("#packageDialog").showModal();
 $("#wikiSearch").onclick = async () => {
   await runImageSearch("wikipedia");
@@ -326,6 +355,30 @@ $("#geminiGenerate").onclick = async () => {
 };
 $("#addForm").onsubmit = async e => {
   e.preventDefault(); if (!state.selectedWiki) return;
+  if (state.cardAction?.action === "replace") {
+    const person = state.cardAction.person;
+    const originalImage = state.selectedWiki.imageUrl;
+    const replacementGemini = state.generatedImage;
+    if (person.new) {
+      const addition = state.drafts.additions.find(item => item.id === person.id);
+      if (addition) {
+        addition.originalImageUrl = originalImage; addition.imageUrl = replacementGemini || originalImage;
+        addition.wikipediaUrl = state.selectedWiki.pageUrl || "";
+      }
+    } else {
+      const id = cardId(person);
+      state.drafts.imageOverrides[id] = originalImage;
+      if (replacementGemini) {
+        state.drafts.geminiOverrides[id] = replacementGemini;
+        state.drafts.removedGemini = state.drafts.removedGemini.filter(item => item !== id);
+      } else {
+        delete state.drafts.geminiOverrides[id];
+        state.drafts.removedGemini = [...new Set([...state.drafts.removedGemini, id])];
+      }
+    }
+    saveDrafts(); state.cardAction = null; $("#addDialog").close(); e.target.reset(); resetImageSearchState();
+    $("#personName").readOnly = false; $("#targetPackages").hidden = false; await load(); toast("התמונה הוחלפה בטיוטה"); return;
+  }
   const packageIds = $$("#targetPackages input:checked").map(input => input.value);
   if (!packageIds.length) { toast("יש לבחור לפחות חבילה אחת"); return; }
   const createdAt = new Date().toISOString();
