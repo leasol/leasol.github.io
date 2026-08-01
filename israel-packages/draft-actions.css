@@ -128,6 +128,8 @@
 .card-actions button:hover { background: #edf5f1; border-color: #9fc3b1; }
 .card-actions .remove-person { color: #9c2f2f; border-color: #e5c4c4; background: #fff7f7; }
 .card-actions .remove-person:hover { background: #feecec; border-color: #dca7a7; }
+.card-actions .tmdb-profile { grid-column: 1 / -1; border-color: #b6addc; background: #f8f7ff; color: #52438f; }
+.card-actions .tmdb-profile:hover { border-color: #8f7bd2; background: #efecff; }
 .card-actions button:focus-visible { outline: 3px solid #b8d9c9; outline-offset: 2px; }
 
 .missing-gemini-filter.active { background: #edf5f1; border-color: #0b6547; color: #0b6547; }

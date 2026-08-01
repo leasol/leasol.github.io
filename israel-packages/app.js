@@ -1,12 +1,12 @@
 const STORAGE_KEY = "israelPackageStudioDraftsV1";
-const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, geminiOverrides: {}, removedGemini: [] } };
+const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, geminiOverrides: {}, tmdbOverrides: {}, removedGemini: [] } };
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 2600) }
 function saveDrafts() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.drafts)) }
 function normalizeDrafts() {
   state.drafts.packages ||= []; state.drafts.additions ||= [];
-  state.drafts.removals ||= []; state.drafts.imageOverrides ||= {}; state.drafts.geminiOverrides ||= {}; state.drafts.removedGemini ||= [];
+  state.drafts.removals ||= []; state.drafts.imageOverrides ||= {}; state.drafts.geminiOverrides ||= {}; state.drafts.tmdbOverrides ||= {}; state.drafts.removedGemini ||= [];
 }
 function cardId(x) { return x.new ? `addition:${x.id}` : `base:${x.packageId}:${x.key}` }
 function isRemoved(x) { return state.drafts.removals.includes(cardId(x)) }
@@ -54,7 +54,7 @@ function render() {
   rows = rows.filter(x => !isRemoved(x)).map(x => {
     const geminiRemoved = state.drafts.removedGemini.includes(cardId(x));
     const gemini = state.drafts.geminiOverrides[cardId(x)] || (geminiRemoved ? null : x.gemini);
-    return { ...x, original: state.drafts.imageOverrides[cardId(x)] || x.original, gemini, hasGemini: Boolean(gemini) };
+    return { ...x, original: state.drafts.imageOverrides[cardId(x)] || x.original, gemini, tmdbId: state.drafts.tmdbOverrides[cardId(x)] || x.tmdbId || "", hasGemini: Boolean(gemini) };
   });
   if (state.filter === "missingGemini") rows = rows.filter(x => !x.hasGemini);
   if (state.query) rows = rows.filter(x => (x.name + " " + x.key).toLowerCase().includes(state.query.toLowerCase()));
@@ -62,7 +62,7 @@ function render() {
   $("#people").innerHTML = rows.length ? rows.map((person, index) => card(person, index + 1)).join("") : `<div class="empty"><b>לא נמצאו אנשים</b><br>אפשר לשנות את החיפוש או להוסיף אדם חדש לחבילה.</div>`;
   $$("nav button").forEach(b => b.onclick = () => { state.packageId = b.dataset.id; render() });
   $$(".compare input").forEach(input => input.oninput = () => input.parentElement.style.setProperty("--split", input.value + "%"));
-  $$(".card-action").forEach(button => button.onclick = () => openCardAction(button.dataset.action, rows[+button.dataset.index]));
+  $$(".card-action").forEach(button => button.onclick = () => button.dataset.action === "tmdb" ? openTmdbProfile(rows[+button.dataset.index]) : openCardAction(button.dataset.action, rows[+button.dataset.index]));
   if (state.highlightCardId) {
     const target = $$(".card").find(card => card.dataset.cardId === state.highlightCardId);
     if (target) requestAnimationFrame(() => { target.classList.add("person-highlight"); target.scrollIntoView({ behavior: "smooth", block: "center" }); state.highlightCardId = null; });
@@ -78,10 +78,34 @@ function card(x, number) {
     <button class="card-action" type="button" data-action="move" data-index="${number - 1}">העברה לחבילה</button>
     <button class="card-action" type="button" data-action="copy" data-index="${number - 1}">העתקה לחבילה</button>
     <button class="card-action remove-person" type="button" data-action="remove" data-index="${number - 1}">הסרת אדם</button>
+    <button class="card-action tmdb-profile" type="button" data-action="tmdb" data-index="${number - 1}">צפייה בפרופיל TMDB</button>
   </div>`;
   const details = x.new ? `נשמר בטיוטת הדפדפן${x.tmdbId ? ` · TMDB ${escapeHtml(x.tmdbId)}` : ""}` : escapeHtml(x.key);
   return `<article class="card ${x.new ? "new" : ""}" data-card-id="${escapeHtml(cardId(x))}"><span class="badge">${x.new ? "חדש · טיוטה" : "קיים"}</span>${image}
     <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${details}</span>${actions}</div></article>`
+}
+async function findTmdbCandidates(name, alternateName = "") {
+  const queries = [...new Set([name, alternateName].map(value => String(value || "").trim()).filter(Boolean))];
+  for (const query of queries) {
+    for (const language of ["he", "en"]) {
+      const searchParams = new URLSearchParams({ action: "wbsearchentities", search: query, language, uselang: language, type: "item", limit: "10", format: "json", origin: "*" });
+      const response = await fetch("https://www.wikidata.org/w/api.php?" + searchParams);
+      if (!response.ok) throw new Error("חיפוש Wikidata נכשל");
+      const ids = ((await response.json()).search || []).map(item => item.id).slice(0, 10);
+      if (!ids.length) continue;
+      const entityParams = new URLSearchParams({ action: "wbgetentities", ids: ids.join("|"), props: "claims|labels|descriptions", languages: "he|en", format: "json", origin: "*" });
+      const entityResponse = await fetch("https://www.wikidata.org/w/api.php?" + entityParams);
+      if (!entityResponse.ok) throw new Error("קריאת Wikidata נכשלה");
+      const entities = (await entityResponse.json()).entities || {};
+      const candidates = ids.flatMap(id => {
+        const entity = entities[id], tmdb = entity?.claims?.P4985?.[0]?.mainsnak?.datavalue?.value;
+        if (!tmdb) return [];
+        return [{ id: String(tmdb), label: entity.labels?.he?.value || entity.labels?.en?.value || id, description: entity.descriptions?.he?.value || entity.descriptions?.en?.value || "", qid: id }];
+      });
+      if (candidates.length) return candidates;
+    }
+  }
+  return [];
 }
 async function lookupTmdbPerson(name) {
   const panel = $("#tmdbLookup"), status = $("#tmdbLookupStatus"), message = $("#tmdbLookupMessage");
@@ -90,27 +114,7 @@ async function lookupTmdbPerson(name) {
   $("#tmdbCandidatesField").hidden = true; $("#tmdbCandidates").innerHTML = ""; $("#tmdbId").value = "";
   message.textContent = "בודק זיהויי אנשים ב־Wikidata";
   try {
-    const searchParams = new URLSearchParams({ action: "wbsearchentities", search: name, language: "he", uselang: "he", type: "item", limit: "10", format: "json", origin: "*" });
-    let response = await fetch("https://www.wikidata.org/w/api.php?" + searchParams);
-    if (!response.ok) throw new Error("חיפוש Wikidata נכשל");
-    let search = await response.json();
-    if (!(search.search || []).length) {
-      searchParams.set("language", "en"); searchParams.set("uselang", "en");
-      response = await fetch("https://www.wikidata.org/w/api.php?" + searchParams); search = await response.json();
-    }
-    const ids = (search.search || []).map(item => item.id).slice(0, 10);
-    if (!ids.length) throw new Error("לא נמצא אדם מתאים");
-    const entityParams = new URLSearchParams({ action: "wbgetentities", ids: ids.join("|"), props: "claims|labels|descriptions", languages: "he|en", format: "json", origin: "*" });
-    response = await fetch("https://www.wikidata.org/w/api.php?" + entityParams);
-    if (!response.ok) throw new Error("קריאת Wikidata נכשלה");
-    const entities = (await response.json()).entities || {};
-    const candidates = ids.flatMap(id => {
-      const entity = entities[id], tmdb = entity?.claims?.P4985?.[0]?.mainsnak?.datavalue?.value;
-      if (!tmdb) return [];
-      const label = entity.labels?.he?.value || entity.labels?.en?.value || id;
-      const description = entity.descriptions?.he?.value || entity.descriptions?.en?.value || "";
-      return [{ id: String(tmdb), label, description, qid: id }];
-    });
+    const candidates = await findTmdbCandidates(name);
     if (!candidates.length) throw new Error("לא נמצא TMDB ID");
     $("#tmdbCandidates").innerHTML = candidates.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}${item.description ? ` — ${escapeHtml(item.description)}` : ""} · ${escapeHtml(item.id)}</option>`).join("");
     $("#tmdbCandidatesField").hidden = candidates.length < 2; $("#tmdbId").value = candidates[0].id;
@@ -118,6 +122,30 @@ async function lookupTmdbPerson(name) {
     status.hidden = true; panel.classList.add("found"); message.textContent = `נמצא TMDB Person ID: ${candidates[0].id}`;
   } catch (error) {
     status.hidden = true; panel.classList.add("not-found"); message.textContent = `${error.message}. אפשר להמשיך בלי TMDB ID או להזין אותו ידנית.`;
+  }
+}
+async function openTmdbProfile(person) {
+  const tab = window.open("about:blank", "_blank");
+  if (tab) tab.opener = null;
+  const openProfile = id => {
+    const url = `https://www.themoviedb.org/person/${encodeURIComponent(id)}`;
+    if (tab) tab.location.replace(url); else window.open(url, "_blank", "noopener");
+  };
+  if (person.tmdbId) { openProfile(person.tmdbId); return; }
+  toast(`מחפש פרופיל TMDB עבור ${person.name}…`);
+  try {
+    const candidates = await findTmdbCandidates(person.name, person.new ? "" : person.key);
+    if (!candidates.length) throw new Error("לא נמצא פרופיל TMDB מתאים");
+    const tmdbId = candidates[0].id;
+    if (person.new) {
+      const addition = state.drafts.additions.find(item => item.id === person.id);
+      if (addition) addition.tmdbId = tmdbId;
+    } else state.drafts.tmdbOverrides[cardId(person)] = tmdbId;
+    saveDrafts(); person.tmdbId = tmdbId; render(); openProfile(tmdbId);
+    toast(`נמצא ונשמר TMDB ID: ${tmdbId}`);
+  } catch (error) {
+    if (tab) tab.close();
+    toast(error.message || "לא ניתן לפתוח את פרופיל TMDB");
   }
 }
 async function wikipedia(name) {
