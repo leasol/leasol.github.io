@@ -47,7 +47,8 @@ function render() {
     gemini: a.imageUrl,
     hasGemini: Boolean(a.originalImageUrl && a.imageUrl !== a.originalImageUrl),
     new: true,
-    wikipediaUrl: a.wikipediaUrl
+    wikipediaUrl: a.wikipediaUrl,
+    tmdbId: a.tmdbId || ""
   }));
   let rows = state.filter === "existing" ? existing : state.filter === "new" ? added : [...added, ...existing];
   rows = rows.filter(x => !isRemoved(x)).map(x => {
@@ -78,8 +79,46 @@ function card(x, number) {
     <button class="card-action" type="button" data-action="copy" data-index="${number - 1}">העתקה לחבילה</button>
     <button class="card-action remove-person" type="button" data-action="remove" data-index="${number - 1}">הסרת אדם</button>
   </div>`;
+  const details = x.new ? `נשמר בטיוטת הדפדפן${x.tmdbId ? ` · TMDB ${escapeHtml(x.tmdbId)}` : ""}` : escapeHtml(x.key);
   return `<article class="card ${x.new ? "new" : ""}" data-card-id="${escapeHtml(cardId(x))}"><span class="badge">${x.new ? "חדש · טיוטה" : "קיים"}</span>${image}
-    <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${x.new ? "נשמר בטיוטת הדפדפן" : escapeHtml(x.key)}</span>${actions}</div></article>`
+    <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${details}</span>${actions}</div></article>`
+}
+async function lookupTmdbPerson(name) {
+  const panel = $("#tmdbLookup"), status = $("#tmdbLookupStatus"), message = $("#tmdbLookupMessage");
+  panel.hidden = false; panel.classList.remove("found", "not-found"); status.hidden = false;
+  status.querySelector("span").textContent = `מחפש TMDB ID עבור ${name}…`;
+  $("#tmdbCandidatesField").hidden = true; $("#tmdbCandidates").innerHTML = ""; $("#tmdbId").value = "";
+  message.textContent = "בודק זיהויי אנשים ב־Wikidata";
+  try {
+    const searchParams = new URLSearchParams({ action: "wbsearchentities", search: name, language: "he", uselang: "he", type: "item", limit: "10", format: "json", origin: "*" });
+    let response = await fetch("https://www.wikidata.org/w/api.php?" + searchParams);
+    if (!response.ok) throw new Error("חיפוש Wikidata נכשל");
+    let search = await response.json();
+    if (!(search.search || []).length) {
+      searchParams.set("language", "en"); searchParams.set("uselang", "en");
+      response = await fetch("https://www.wikidata.org/w/api.php?" + searchParams); search = await response.json();
+    }
+    const ids = (search.search || []).map(item => item.id).slice(0, 10);
+    if (!ids.length) throw new Error("לא נמצא אדם מתאים");
+    const entityParams = new URLSearchParams({ action: "wbgetentities", ids: ids.join("|"), props: "claims|labels|descriptions", languages: "he|en", format: "json", origin: "*" });
+    response = await fetch("https://www.wikidata.org/w/api.php?" + entityParams);
+    if (!response.ok) throw new Error("קריאת Wikidata נכשלה");
+    const entities = (await response.json()).entities || {};
+    const candidates = ids.flatMap(id => {
+      const entity = entities[id], tmdb = entity?.claims?.P4985?.[0]?.mainsnak?.datavalue?.value;
+      if (!tmdb) return [];
+      const label = entity.labels?.he?.value || entity.labels?.en?.value || id;
+      const description = entity.descriptions?.he?.value || entity.descriptions?.en?.value || "";
+      return [{ id: String(tmdb), label, description, qid: id }];
+    });
+    if (!candidates.length) throw new Error("לא נמצא TMDB ID");
+    $("#tmdbCandidates").innerHTML = candidates.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}${item.description ? ` — ${escapeHtml(item.description)}` : ""} · ${escapeHtml(item.id)}</option>`).join("");
+    $("#tmdbCandidatesField").hidden = candidates.length < 2; $("#tmdbId").value = candidates[0].id;
+    $("#tmdbCandidates").onchange = event => { $("#tmdbId").value = event.target.value; };
+    status.hidden = true; panel.classList.add("found"); message.textContent = `נמצא TMDB Person ID: ${candidates[0].id}`;
+  } catch (error) {
+    status.hidden = true; panel.classList.add("not-found"); message.textContent = `${error.message}. אפשר להמשיך בלי TMDB ID או להזין אותו ידנית.`;
+  }
 }
 async function wikipedia(name) {
   const params = new URLSearchParams({ action: "query", generator: "search", gsrsearch: name, gsrnamespace: "0", gsrlimit: "5", prop: "pageimages|extracts|info", inprop: "url", piprop: "thumbnail|original", pithumbsize: "900", exintro: "1", explaintext: "1", format: "json", origin: "*" });
@@ -195,7 +234,7 @@ function additionFromCard(x, packageId) {
   return {
     id: crypto.randomUUID(), packageId, name: x.name,
     imageUrl: x.gemini || x.original, originalImageUrl: x.original,
-    wikipediaUrl: x.wikipediaUrl || "", createdAt: new Date().toISOString()
+    wikipediaUrl: x.wikipediaUrl || "", tmdbId: x.tmdbId || "", createdAt: new Date().toISOString()
   };
 }
 function openCardAction(action, person) {
@@ -220,6 +259,7 @@ function openCardAction(action, person) {
 }
 function resetImageSearchState() {
   $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = "";
+  $("#tmdbLookup").hidden = true; $("#tmdbLookup").classList.remove("found", "not-found"); $("#tmdbId").value = "";
   $("#webSearchRefine").hidden = true; $("#webSearchExtra").value = "";
   $("#wikiResults").innerHTML = ""; $("#wikiStatus").hidden = true;
   $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true;
@@ -324,6 +364,7 @@ $("#webSearchExtra").onkeydown = async event => {
 };
 async function runImageSearch(source) {
   const name = $("#personName").value.trim(); if (!name) { toast("יש להזין שם מלא"); return }
+  if (state.cardAction?.action !== "replace") lookupTmdbPerson(name);
   const extra = source === "web" ? $("#webSearchExtra").value.trim() : "";
   const searchQuery = extra ? `${name} ${extra}` : name;
   $("#wikiStatus b").textContent=source==="web"?"מחפש תמונות באינטרנט…":"מחפש בוויקיפדיה…";
@@ -382,7 +423,7 @@ $("#addForm").onsubmit = async e => {
   const packageIds = $$("#targetPackages input:checked").map(input => input.value);
   if (!packageIds.length) { toast("יש לבחור לפחות חבילה אחת"); return; }
   const createdAt = new Date().toISOString();
-  packageIds.forEach(packageId => state.drafts.additions.push({ id: crypto.randomUUID(), packageId, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, createdAt }));
+  packageIds.forEach(packageId => state.drafts.additions.push({ id: crypto.randomUUID(), packageId, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, tmdbId: $("#tmdbId").value.trim(), createdAt }));
   saveDrafts(); $("#addDialog").close(); e.target.reset(); $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = ""; $("#wikiResults").innerHTML = ""; $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true; $("#geminiMessage").hidden = true; state.selectedWiki = null; state.generatedImage = null; await load(); toast(packageIds.length > 1 ? `האדם נוסף ל־${packageIds.length} חבילות בטיוטה` : "האדם נוסף ונשמר בטיוטת הדפדפן");
 };
 $("#packageForm").onsubmit = async e => {
