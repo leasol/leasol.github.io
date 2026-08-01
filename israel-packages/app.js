@@ -1,4 +1,5 @@
 const STORAGE_KEY = "israelPackageStudioDraftsV1";
+const ALL_PACKAGES_ID = "__all__";
 const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, geminiOverrides: {}, tmdbOverrides: {}, removedGemini: [] } };
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -24,24 +25,28 @@ async function load() {
   try { state.drafts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || state.drafts } catch { }
   normalizeDrafts();
   state.data = { packages: [...base.packages, ...state.drafts.packages.map(p => ({ ...p, people: [], count: 0, custom: true }))], additions: state.drafts.additions };
-  state.packageId = state.packageId || state.data.packages[0]?.id;
+  state.packageId = state.packageId || ALL_PACKAGES_ID;
   $("#packageCount").textContent = state.data.packages.length;
   $("#peopleCount").textContent = base.packages.reduce((n, p) => n + p.count, 0).toLocaleString("he-IL");
   $("#newCount").textContent = state.data.additions.length;
-  $("#targetPackages .package-options").innerHTML = packageOptions([state.packageId]);
+  $("#targetPackages .package-options").innerHTML = packageOptions(state.packageId === ALL_PACKAGES_ID ? [] : [state.packageId]);
   $("#destinationPackage").innerHTML = state.data.packages.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
   render();
 }
-function current() { return state.data.packages.find(p => p.id === state.packageId) }
+function current() { return state.packageId === ALL_PACKAGES_ID ? { id: ALL_PACKAGES_ID, name: "כל החבילות", custom: false } : state.data.packages.find(p => p.id === state.packageId) }
 function render() {
   const p = current(); if (!p) return;
-  $("#packages").innerHTML = state.data.packages.map(x => `<button class="${x.id === p.id ? "active" : ""}" data-id="${x.id}"><span>${escapeHtml(x.name)}${x.custom ? " · טיוטה" : ""}</span><small>${packageDisplayCount(x)}</small></button>`).join("");
-  $("#packageTitle").textContent = p.name; $("#packageTag").textContent = p.custom ? "חבילה חדשה · טיוטה" : "מתוך ה־manifest";
-  const existing = p.people.map(x => ({ ...x, packageId: p.id, new: false, hasGemini: Boolean(x.gemini) }));
-  const added = state.data.additions.filter(a => a.packageId === p.id).map(a => ({
+  const allCount = state.data.packages.reduce((count, pkg) => count + packageDisplayCount(pkg), 0);
+  $("#packages").innerHTML = `<button class="all-packages ${p.id === ALL_PACKAGES_ID ? "active" : ""}" data-id="${ALL_PACKAGES_ID}"><span>כל החבילות</span><small>${allCount}</small></button>` + state.data.packages.map(x => `<button class="${x.id === p.id ? "active" : ""}" data-id="${x.id}"><span>${escapeHtml(x.name)}${x.custom ? " · טיוטה" : ""}</span><small>${packageDisplayCount(x)}</small></button>`).join("");
+  $("#packageTitle").textContent = p.name; $("#packageTag").textContent = p.id === ALL_PACKAGES_ID ? "חיפוש ותצוגה בכל החבילות" : p.custom ? "חבילה חדשה · טיוטה" : "מתוך ה־manifest";
+  const visiblePackages = p.id === ALL_PACKAGES_ID ? state.data.packages : [p];
+  const existing = visiblePackages.flatMap(pkg => pkg.people.map(x => ({ ...x, packageId: pkg.id, packageName: pkg.name, new: false, hasGemini: Boolean(x.gemini) })));
+  const visiblePackageIds = new Set(visiblePackages.map(pkg => pkg.id));
+  const added = state.data.additions.filter(a => visiblePackageIds.has(a.packageId)).map(a => ({
     key: a.id,
     id: a.id,
-    packageId: p.id,
+    packageId: a.packageId,
+    packageName: state.data.packages.find(pkg => pkg.id === a.packageId)?.name || "",
     name: a.name,
     original: a.originalImageUrl || a.imageUrl,
     gemini: a.imageUrl,
@@ -80,7 +85,8 @@ function card(x, number) {
     <button class="card-action remove-person" type="button" data-action="remove" data-index="${number - 1}">הסרת אדם</button>
     <button class="card-action tmdb-profile" type="button" data-action="tmdb" data-index="${number - 1}">צפייה בפרופיל TMDB</button>
   </div>`;
-  const details = x.new ? `נשמר בטיוטת הדפדפן${x.tmdbId ? ` · TMDB ${escapeHtml(x.tmdbId)}` : ""}` : escapeHtml(x.key);
+  const packageDetail = state.packageId === ALL_PACKAGES_ID && x.packageName ? ` · ${escapeHtml(x.packageName)}` : "";
+  const details = x.new ? `נשמר בטיוטת הדפדפן${packageDetail}${x.tmdbId ? ` · TMDB ${escapeHtml(x.tmdbId)}` : ""}` : `${escapeHtml(x.key)}${packageDetail}`;
   return `<article class="card ${x.new ? "new" : ""}" data-card-id="${escapeHtml(cardId(x))}"><span class="badge">${x.new ? "חדש · טיוטה" : "קיים"}</span>${image}
     <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${details}</span>${actions}</div></article>`
 }
@@ -371,7 +377,7 @@ $("#openAdd").onclick = () => {
   $("#addDialogEyebrow").textContent = "תוספת חדשה"; $("#addDialogTitle").textContent = "את מי מוסיפים?";
   $("#addDialogDescription").textContent = "נחפש תמונה מתאימה בוויקיפדיה לפני השמירה.";
   $("#personName").value = ""; $("#personName").readOnly = false;
-  $("#targetPackages").hidden = false; $("#targetPackages .package-options").innerHTML = packageOptions([state.packageId]);
+  $("#targetPackages").hidden = false; $("#targetPackages .package-options").innerHTML = packageOptions(state.packageId === ALL_PACKAGES_ID ? [] : [state.packageId]);
   $("#savePerson").textContent = "שמירת התוספת כטיוטה"; $("#addDialog").showModal();
 };
 $("#newPackage").onclick = () => $("#packageDialog").showModal();

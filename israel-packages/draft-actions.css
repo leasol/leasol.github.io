@@ -132,6 +132,8 @@
 .card-actions .tmdb-profile:hover { border-color: #8f7bd2; background: #efecff; }
 .card-actions button:focus-visible { outline: 3px solid #b8d9c9; outline-offset: 2px; }
 
+#packages .all-packages { margin-bottom: 8px; border-bottom: 2px solid #c9ddd2; }
+
 .missing-gemini-filter.active { background: #edf5f1; border-color: #0b6547; color: #0b6547; }
 
 .existing-people {
