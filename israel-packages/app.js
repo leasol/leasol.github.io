@@ -1,29 +1,47 @@
 const STORAGE_KEY = "israelPackageStudioDraftsV1";
-const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", drafts: { packages: [], additions: [] } };
+const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, removedGemini: [] } };
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 2600) }
 function saveDrafts() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.drafts)) }
+function normalizeDrafts() {
+  state.drafts.packages ||= []; state.drafts.additions ||= [];
+  state.drafts.removals ||= []; state.drafts.imageOverrides ||= {}; state.drafts.removedGemini ||= [];
+}
+function cardId(x) { return x.new ? `addition:${x.id}` : `base:${x.packageId}:${x.key}` }
+function isRemoved(x) { return state.drafts.removals.includes(cardId(x)) }
+function packageDisplayCount(pkg) {
+  const existingCount = pkg.people.filter(person => !isRemoved({ ...person, packageId: pkg.id, new: false })).length;
+  const additionsCount = state.data.additions.filter(person => person.packageId === pkg.id && !isRemoved({ ...person, new: true })).length;
+  return existingCount + additionsCount;
+}
+function packageOptions(selected = []) {
+  return state.data.packages.map(p => `<label><input type="checkbox" name="targetPackages" value="${escapeHtml(p.id)}" ${selected.includes(p.id) ? "checked" : ""}><span>${escapeHtml(p.name)}</span></label>`).join("");
+}
 async function load() {
   const response = await fetch("data.json"); if (!response.ok) throw new Error("קובץ הנתונים אינו זמין");
   const base = await response.json();
   try { state.drafts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || state.drafts } catch { }
+  normalizeDrafts();
   state.data = { packages: [...base.packages, ...state.drafts.packages.map(p => ({ ...p, people: [], count: 0, custom: true }))], additions: state.drafts.additions };
   state.packageId = state.packageId || state.data.packages[0]?.id;
   $("#packageCount").textContent = state.data.packages.length;
   $("#peopleCount").textContent = base.packages.reduce((n, p) => n + p.count, 0).toLocaleString("he-IL");
   $("#newCount").textContent = state.data.additions.length;
-  $("#targetPackage").innerHTML = state.data.packages.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+  $("#targetPackages .package-options").innerHTML = packageOptions([state.packageId]);
+  $("#destinationPackage").innerHTML = state.data.packages.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
   render();
 }
 function current() { return state.data.packages.find(p => p.id === state.packageId) }
 function render() {
   const p = current(); if (!p) return;
-  $("#packages").innerHTML = state.data.packages.map(x => `<button class="${x.id === p.id ? "active" : ""}" data-id="${x.id}"><span>${escapeHtml(x.name)}${x.custom ? " · טיוטה" : ""}</span><small>${x.count + state.data.additions.filter(a => a.packageId === x.id).length}</small></button>`).join("");
+  $("#packages").innerHTML = state.data.packages.map(x => `<button class="${x.id === p.id ? "active" : ""}" data-id="${x.id}"><span>${escapeHtml(x.name)}${x.custom ? " · טיוטה" : ""}</span><small>${packageDisplayCount(x)}</small></button>`).join("");
   $("#packageTitle").textContent = p.name; $("#packageTag").textContent = p.custom ? "חבילה חדשה · טיוטה" : "מתוך ה־manifest";
-  const existing = p.people.map(x => ({ ...x, new: false }));
+  const existing = p.people.map(x => ({ ...x, packageId: p.id, new: false, hasGemini: Boolean(x.gemini) }));
   const added = state.data.additions.filter(a => a.packageId === p.id).map(a => ({
     key: a.id,
+    id: a.id,
+    packageId: p.id,
     name: a.name,
     original: a.originalImageUrl || a.imageUrl,
     gemini: a.imageUrl,
@@ -32,28 +50,35 @@ function render() {
     wikipediaUrl: a.wikipediaUrl
   }));
   let rows = state.filter === "existing" ? existing : state.filter === "new" ? added : [...added, ...existing];
+  rows = rows.filter(x => !isRemoved(x)).map(x => {
+    const geminiRemoved = state.drafts.removedGemini.includes(cardId(x));
+    return { ...x, original: state.drafts.imageOverrides[cardId(x)] || x.original, gemini: geminiRemoved ? null : x.gemini, hasGemini: x.hasGemini && !geminiRemoved };
+  });
+  if (state.filter === "missingGemini") rows = rows.filter(x => !x.hasGemini);
   if (state.query) rows = rows.filter(x => (x.name + " " + x.key).toLowerCase().includes(state.query.toLowerCase()));
   $("#resultCount").textContent = `${rows.length} אנשים`;
   $("#people").innerHTML = rows.length ? rows.map((person, index) => card(person, index + 1)).join("") : `<div class="empty"><b>לא נמצאו אנשים</b><br>אפשר לשנות את החיפוש או להוסיף אדם חדש לחבילה.</div>`;
   $$("nav button").forEach(b => b.onclick = () => { state.packageId = b.dataset.id; render() });
   $$(".compare input").forEach(input => input.oninput = () => input.parentElement.style.setProperty("--split", input.value + "%"));
-  $$(".delete-person").forEach(button => button.onclick = async () => {
-    const person = state.drafts.additions.find(item => item.id === button.dataset.id);
-    if (!person || !confirm(`למחוק את ${person.name} מהטיוטה?`)) return;
-    state.drafts.additions = state.drafts.additions.filter(item => item.id !== button.dataset.id);
-    saveDrafts();
-    await load();
-    toast("האדם נמחק מהטיוטה");
-  });
+  $$(".card-action").forEach(button => button.onclick = () => openCardAction(button.dataset.action, rows[+button.dataset.index]));
+  if (state.highlightCardId) {
+    const target = $$(".card").find(card => card.dataset.cardId === state.highlightCardId);
+    if (target) requestAnimationFrame(() => { target.classList.add("person-highlight"); target.scrollIntoView({ behavior: "smooth", block: "center" }); state.highlightCardId = null; });
+  }
 }
 function card(x, number) {
   const originalLabel = x.new ? "Wikipedia" : "מקור";
-  const image = x.new && !x.hasGemini
+  const image = !x.hasGemini
     ? `<div class="compare"><img src="${x.original}" alt="התמונה שנבחרה עבור ${escapeHtml(x.name)}" loading="lazy"></div>`
     : `<div class="compare" style="--split:50%"><img src="${x.original}" alt="תמונת המקור של ${escapeHtml(x.name)}" loading="lazy"><img class="after" src="${x.gemini}" alt="תמונת Gemini של ${escapeHtml(x.name)}" loading="lazy"><div class="compare-line"></div><input type="range" min="0" max="100" value="50" aria-label="השוואת לפני ואחרי"><div class="labels"><span>${originalLabel}</span><span>Gemini</span></div></div>`;
-  const remove = x.new ? `<button class="delete-person" type="button" data-id="${escapeHtml(x.key)}" aria-label="מחיקת ${escapeHtml(x.name)} מהטיוטה">מחיקה מהטיוטה</button>` : "";
-  return `<article class="card ${x.new ? "new" : ""}"><span class="badge">${x.new ? "חדש · טיוטה" : "קיים"}</span>${image}
-    <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${x.new ? "נשמר בטיוטת הדפדפן" : escapeHtml(x.key)}</span>${remove}</div></article>`
+  const actions = `<div class="card-actions" aria-label="פעולות עבור ${escapeHtml(x.name)}">
+    <button class="card-action" type="button" data-action="replace" data-index="${number - 1}">החלפת תמונה</button>
+    <button class="card-action" type="button" data-action="move" data-index="${number - 1}">העברה לחבילה</button>
+    <button class="card-action" type="button" data-action="copy" data-index="${number - 1}">העתקה לחבילה</button>
+    <button class="card-action remove-person" type="button" data-action="remove" data-index="${number - 1}">הסרת אדם</button>
+  </div>`;
+  return `<article class="card ${x.new ? "new" : ""}" data-card-id="${escapeHtml(cardId(x))}"><span class="badge">${x.new ? "חדש · טיוטה" : "קיים"}</span>${image}
+    <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${x.new ? "נשמר בטיוטת הדפדפן" : escapeHtml(x.key)}</span>${actions}</div></article>`
 }
 async function wikipedia(name) {
   const params = new URLSearchParams({ action: "query", generator: "search", gsrsearch: name, gsrnamespace: "0", gsrlimit: "5", prop: "pageimages|extracts|info", inprop: "url", piprop: "thumbnail|original", pithumbsize: "900", exintro: "1", explaintext: "1", format: "json", origin: "*" });
@@ -141,7 +166,8 @@ async function generateGemini(imageUrl) {
 }
 $("#search").oninput = e => { state.query = e.target.value; render() };
 $$("dialog .close").forEach(button => button.onclick = () => button.closest("dialog").close());
-$$(".tabs button").forEach(b => b.onclick = () => { $$(".tabs button").forEach(x => x.classList.remove("active")); b.classList.add("active"); state.filter = b.dataset.filter; render() });
+$$(".tabs button").forEach(b => b.onclick = () => { $$(".tabs button").forEach(x => x.classList.remove("active")); $("#showMissingGemini").classList.remove("active"); b.classList.add("active"); state.filter = b.dataset.filter; render() });
+$("#showMissingGemini").onclick = () => { state.filter = state.filter === "missingGemini" ? "all" : "missingGemini"; $$(".tabs button").forEach(x => x.classList.toggle("active", state.filter === "all" && x.dataset.filter === "all")); $("#showMissingGemini").classList.toggle("active", state.filter === "missingGemini"); render() };
 function clearGeminiError() {
   state.lastGeminiError = ""; $("#geminiErrorPanel").hidden = true; $("#geminiErrorDetails").textContent = "";
 }
@@ -159,7 +185,93 @@ $("#copyGeminiError").onclick = async () => {
   catch { const input = document.createElement("textarea"); input.value = state.lastGeminiError; document.body.append(input); input.select(); document.execCommand("copy"); input.remove() }
   $("#copyGeminiError").textContent = "הועתק ✓"; setTimeout(() => $("#copyGeminiError").textContent = "העתקת השגיאה", 1600);
 };
-$("#openAdd").onclick = () => { $("#targetPackage").value = state.packageId; $("#webSearchRefine").hidden = true; $("#webSearchExtra").value = ""; $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError(); $("#addDialog").showModal() };
+function additionFromCard(x, packageId) {
+  return {
+    id: crypto.randomUUID(), packageId, name: x.name,
+    imageUrl: x.gemini || x.original, originalImageUrl: x.original,
+    wikipediaUrl: x.wikipediaUrl || "", createdAt: new Date().toISOString()
+  };
+}
+function openCardAction(action, person) {
+  state.cardAction = { action, person };
+  const labels = { replace: "החלפת תמונה", move: "העברה לחבילה", copy: "העתקה לחבילה", remove: "הסרת אדם" };
+  $("#cardActionTitle").textContent = labels[action];
+  $("#cardActionEyebrow").textContent = person.name;
+  $("#replacementImageField").hidden = action !== "replace";
+  $("#destinationPackageField").hidden = !["move", "copy"].includes(action);
+  $("#replacementImageUrl").value = person.original || "";
+  $("#destinationPackage").value = state.data.packages.find(p => p.id !== person.packageId)?.id || person.packageId;
+  const descriptions = {
+    replace: "הזינו כתובת לתמונת המקור החדשה. תמונת ה־Gemini הקיימת תוסר מהטיוטה.",
+    move: "האדם יוסר מהחבילה הנוכחית ויופיע בחבילת היעד.",
+    copy: "עותק של האדם יתווסף לחבילת היעד, והמקור יישאר כאן.",
+    remove: "האדם יוסר מחבילה זו בטיוטה. אפשר לשחזר באמצעות מחיקת הטיוטות בדפדפן."
+  };
+  $("#cardActionDescription").textContent = descriptions[action];
+  $("#saveCardAction").textContent = action === "remove" ? "הסרה כטיוטה" : "שמירה כטיוטה";
+  $("#cardActionDialog").showModal();
+}
+function normalizeName(value) { return String(value).toLocaleLowerCase("he").replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " "); }
+function findExistingPeople(value) {
+  const query = normalizeName(value); if (query.length < 3 || !state.data) return [];
+  const matches = [];
+  state.data.packages.forEach(pkg => {
+    if (pkg.id === state.packageId) return;
+    pkg.people.forEach(person => {
+      const item = { ...person, packageId: pkg.id, new: false };
+      if (!isRemoved(item) && normalizeName(person.name).includes(query)) matches.push({ packageId: pkg.id, packageName: pkg.name, cardId: cardId(item), name: person.name });
+    });
+    state.drafts.additions.filter(person => person.packageId === pkg.id).forEach(person => {
+      const item = { ...person, new: true };
+      if (!isRemoved(item) && normalizeName(person.name).includes(query)) matches.push({ packageId: pkg.id, packageName: pkg.name, cardId: cardId(item), name: person.name });
+    });
+  });
+  return matches.slice(0, 10);
+}
+function showExistingPeople() {
+  const matches = findExistingPeople($("#personName").value);
+  const panel = $("#existingPeople");
+  panel.hidden = !matches.length;
+  if (!matches.length) { panel.innerHTML = ""; return; }
+  panel.innerHTML = `<b>האדם כבר קיים בחבילה אחרת — לחצו כדי להציג אותו:</b>${matches.map((match, index) => `<button type="button" class="existing-person-option" data-index="${index}"><span>${escapeHtml(match.name)}</span><small>${escapeHtml(match.packageName)}</small></button>`).join("")}`;
+  $$(".existing-person-option").forEach(button => button.onclick = () => {
+    const match = matches[+button.dataset.index];
+    state.packageId = match.packageId; state.filter = "all"; state.query = ""; state.highlightCardId = match.cardId;
+    $("#search").value = ""; $$(".tabs button").forEach(tab => tab.classList.toggle("active", tab.dataset.filter === "all")); $("#showMissingGemini").classList.remove("active");
+    $("#addDialog").close(); render(); toast(`נפתח: ${match.name} · ${match.packageName}`);
+  });
+}
+let existingPeopleTimer;
+$("#personName").oninput = () => { clearTimeout(existingPeopleTimer); existingPeopleTimer = setTimeout(showExistingPeople, 350); };
+$("#personName").onchange = showExistingPeople;
+$("#cardActionForm").onsubmit = async e => {
+  e.preventDefault();
+  const operation = state.cardAction; if (!operation) return;
+  const { action, person } = operation;
+  if (action === "replace") {
+    const url = $("#replacementImageUrl").value.trim();
+    if (!url) { toast("יש להזין כתובת תמונה"); return; }
+    state.drafts.imageOverrides[cardId(person)] = url;
+    state.drafts.removedGemini = [...new Set([...state.drafts.removedGemini, cardId(person)])];
+  } else if (action === "remove") {
+    if (!confirm(`להסיר את ${person.name} מחבילה זו?`)) return;
+    if (person.new) state.drafts.additions = state.drafts.additions.filter(item => item.id !== person.id);
+    else state.drafts.removals = [...new Set([...state.drafts.removals, cardId(person)])];
+  } else {
+    const destination = $("#destinationPackage").value;
+    if (!destination || destination === person.packageId) { toast("יש לבחור חבילה אחרת"); return; }
+    if (action === "move" && person.new) {
+      const item = state.drafts.additions.find(item => item.id === person.id);
+      if (item) item.packageId = destination;
+    } else {
+      state.drafts.additions.push(additionFromCard(person, destination));
+      if (action === "move") state.drafts.removals = [...new Set([...state.drafts.removals, cardId(person)])];
+    }
+  }
+  saveDrafts(); $("#cardActionDialog").close(); state.cardAction = null; await load();
+  toast(action === "remove" ? "האדם הוסר בטיוטה" : action === "move" ? "האדם הועבר בטיוטה" : action === "copy" ? "העתק נוסף בטיוטה" : "התמונה הוחלפה בטיוטה");
+};
+$("#openAdd").onclick = () => { $("#targetPackages .package-options").innerHTML = packageOptions([state.packageId]); $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = ""; $("#webSearchRefine").hidden = true; $("#webSearchExtra").value = ""; $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError(); $("#addDialog").showModal() };
 $("#newPackage").onclick = () => $("#packageDialog").showModal();
 $("#wikiSearch").onclick = async () => {
   await runImageSearch("wikipedia");
@@ -209,8 +321,11 @@ $("#geminiGenerate").onclick = async () => {
 };
 $("#addForm").onsubmit = async e => {
   e.preventDefault(); if (!state.selectedWiki) return;
-  state.drafts.additions.push({ id: crypto.randomUUID(), packageId: $("#targetPackage").value, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, createdAt: new Date().toISOString() });
-  saveDrafts(); $("#addDialog").close(); e.target.reset(); $("#wikiResults").innerHTML = ""; $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true; $("#geminiMessage").hidden = true; state.selectedWiki = null; state.generatedImage = null; await load(); toast("האדם נוסף ונשמר בטיוטת הדפדפן");
+  const packageIds = $$("#targetPackages input:checked").map(input => input.value);
+  if (!packageIds.length) { toast("יש לבחור לפחות חבילה אחת"); return; }
+  const createdAt = new Date().toISOString();
+  packageIds.forEach(packageId => state.drafts.additions.push({ id: crypto.randomUUID(), packageId, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, createdAt }));
+  saveDrafts(); $("#addDialog").close(); e.target.reset(); $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = ""; $("#wikiResults").innerHTML = ""; $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true; $("#geminiMessage").hidden = true; state.selectedWiki = null; state.generatedImage = null; await load(); toast(packageIds.length > 1 ? `האדם נוסף ל־${packageIds.length} חבילות בטיוטה` : "האדם נוסף ונשמר בטיוטת הדפדפן");
 };
 $("#packageForm").onsubmit = async e => {
   e.preventDefault(); const name = $("#packageName").value.trim(); const id = "custom_" + Date.now();

@@ -107,6 +107,59 @@
   outline-offset: 2px;
 }
 
+.card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.card-actions button {
+  min-height: 34px;
+  padding: 7px 6px;
+  border: 1px solid #d7e2dc;
+  border-radius: 8px;
+  background: #fff;
+  color: #244138;
+  font: 700 11px Arial, "Noto Sans Hebrew", sans-serif;
+  cursor: pointer;
+}
+
+.card-actions button:hover { background: #edf5f1; border-color: #9fc3b1; }
+.card-actions .remove-person { color: #9c2f2f; border-color: #e5c4c4; background: #fff7f7; }
+.card-actions .remove-person:hover { background: #feecec; border-color: #dca7a7; }
+.card-actions button:focus-visible { outline: 3px solid #b8d9c9; outline-offset: 2px; }
+
+.missing-gemini-filter.active { background: #edf5f1; border-color: #0b6547; color: #0b6547; }
+
+.existing-people {
+  margin: -5px 0 14px;
+  padding: 11px;
+  border: 1px solid #c9ddd2;
+  border-radius: 10px;
+  background: #f4faf6;
+}
+
+.existing-people > b { display: block; margin-bottom: 8px; color: #0b6547; font-size: 12px; }
+.existing-person-option { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 4px; border: 0; border-top: 1px solid #dcebe2; background: transparent; color: #18231f; font: 700 12px Arial, "Noto Sans Hebrew", sans-serif; text-align: right; cursor: pointer; }
+.existing-person-option:first-of-type { border-top: 0; }
+.existing-person-option small { color: #718078; font-weight: 400; }
+.card.person-highlight { animation: person-highlight 2.4s ease-out; box-shadow: 0 0 0 4px #dff45b, 0 12px 30px #0b654733; }
+
+@keyframes person-highlight { from { box-shadow: 0 0 0 7px #dff45b, 0 12px 30px #0b654744; } to { box-shadow: 0 0 0 0 transparent, 0 0 0 transparent; } }
+
+.package-picker {
+  margin: 15px 0;
+  padding: 0;
+  border: 0;
+}
+
+.package-picker legend { font-size: 13px; font-weight: bold; }
+.package-picker > span { display: block; margin-top: 4px; color: #718078; font-size: 12px; }
+.package-options { display: grid; gap: 7px; max-height: 180px; margin-top: 9px; overflow: auto; padding: 2px; }
+.package-options label { display: flex; align-items: center; gap: 8px; margin: 0; padding: 9px 10px; border: 1px solid #d7e2dc; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.package-options input { width: auto; margin: 0; accent-color: #0b6547; }
+
 .gemini-preview {
   margin-top: 14px;
   padding: 10px;
