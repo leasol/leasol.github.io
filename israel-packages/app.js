@@ -49,7 +49,7 @@ function render() {
     packageName: state.data.packages.find(pkg => pkg.id === a.packageId)?.name || "",
     name: a.name,
     original: a.originalImageUrl || a.imageUrl,
-    gemini: a.imageUrl,
+    gemini: a.originalImageUrl && a.imageUrl !== a.originalImageUrl ? a.imageUrl : null,
     hasGemini: Boolean(a.originalImageUrl && a.imageUrl !== a.originalImageUrl),
     new: true,
     wikipediaUrl: a.wikipediaUrl,
