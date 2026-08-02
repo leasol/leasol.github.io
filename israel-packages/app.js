@@ -166,19 +166,27 @@ async function webImages(name) {
   const endpoint = local
     ? "/api/web-search"
     : "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/web-search";
-  const options = local ? {} : {
-    headers: { "OAI-Sites-Authorization": "Bearer MohaGTH8g09N7K2_lCN4jFKFFS8fZEwJsJm8eVr1Dao" }
-  };
-  const response = await fetch(endpoint + "?name=" + encodeURIComponent(name), options);
+  const response = await fetch(endpoint + "?name=" + encodeURIComponent(name));
   const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
   if (!response.ok) throw new Error(data.error || `חיפוש האינטרנט נכשל (${response.status})`);
   return data.results || [];
 }
 async function generateGemini(imageUrl) {
   const endpoint = location.protocol === "http:" && ["localhost", "127.0.0.1"].includes(location.hostname) ? "/api/openai-image" : "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/openai-image";
-  const headers = { "Content-Type": "application/json" };
-  if (!endpoint.startsWith("/")) headers["OAI-Sites-Authorization"] = "Bearer MohaGTH8g09N7K2_lCN4jFKFFS8fZEwJsJm8eVr1Dao";
-  const response = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
+  let studioToken = localStorage.getItem("israelPackageStudioToken") || "";
+  if (!studioToken) {
+    studioToken = prompt("הזינו את סיסמת יצירת התמונות של הסטודיו:")?.trim() || "";
+    if (!studioToken) throw new Error("לא הוזנה סיסמת הסטודיו");
+    localStorage.setItem("israelPackageStudioToken", studioToken);
+  }
+  let response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-Studio-Token": studioToken }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
+  if (response.status === 401) {
+    localStorage.removeItem("israelPackageStudioToken");
+    const retryToken = prompt("סיסמת הסטודיו אינה נכונה. הזינו אותה מחדש:")?.trim() || "";
+    if (!retryToken) throw new Error("סיסמת הסטודיו שגויה או חסרה");
+    localStorage.setItem("israelPackageStudioToken", retryToken);
+    response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-Studio-Token": retryToken }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
+  }
   const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
   if (!response.ok) { const error = new Error(data.error || "עיבוד התמונה נכשל"); error.details = data.details || `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
   return data.imageUrl;
