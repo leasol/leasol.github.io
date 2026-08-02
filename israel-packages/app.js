@@ -77,7 +77,7 @@ function card(x, number) {
   const originalLabel = x.new ? "Wikipedia" : "מקור";
   const image = !x.hasGemini
     ? `<div class="compare"><img src="${x.original}" alt="התמונה שנבחרה עבור ${escapeHtml(x.name)}" loading="lazy"></div>`
-    : `<div class="compare" style="--split:50%"><img src="${x.original}" alt="תמונת המקור של ${escapeHtml(x.name)}" loading="lazy"><img class="after" src="${x.gemini}" alt="תמונת Gemini של ${escapeHtml(x.name)}" loading="lazy"><div class="compare-line"></div><input type="range" min="0" max="100" value="50" aria-label="השוואת לפני ואחרי"><div class="labels"><span>${originalLabel}</span><span>Gemini</span></div></div>`;
+    : `<div class="compare" style="--split:50%"><img src="${x.original}" alt="תמונת המקור של ${escapeHtml(x.name)}" loading="lazy"><img class="after" src="${x.gemini}" alt="תמונת עיבוד AI של ${escapeHtml(x.name)}" loading="lazy"><div class="compare-line"></div><input type="range" min="0" max="100" value="50" aria-label="השוואת לפני ואחרי"><div class="labels"><span>${originalLabel}</span><span>עיבוד AI</span></div></div>`;
   const actions = `<div class="card-actions" aria-label="פעולות עבור ${escapeHtml(x.name)}">
     <button class="card-action" type="button" data-action="replace" data-index="${number - 1}">החלפת תמונה</button>
     <button class="card-action" type="button" data-action="move" data-index="${number - 1}">העברה לחבילה</button>
@@ -174,66 +174,11 @@ async function webImages(name) {
   if (!response.ok) throw new Error(data.error || `חיפוש האינטרנט נכשל (${response.status})`);
   return data.results || [];
 }
-function findGeminiImage(value) {
-  if (Array.isArray(value)) {
-    for (const child of value) { const found = findGeminiImage(child); if (found) return found }
-  } else if (value && typeof value === "object") {
-    if (value.type === "image" && value.data) return { data: value.data, mimeType: value.mime_type || "image/png" };
-    for (const child of Object.values(value)) { const found = findGeminiImage(child); if (found) return found }
-  }
-  return null;
-}
-async function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1]);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-}
-async function fetchImageBlob(imageUrl) {
-  try {
-    const direct = await fetch(imageUrl);
-    if (direct.ok) return direct.blob();
-  } catch { }
-  const proxyUrl = "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/image-proxy?url=" + encodeURIComponent(imageUrl);
-  const proxied = await fetch(proxyUrl, {
-    headers: { "OAI-Sites-Authorization": "Bearer MohaGTH8g09N7K2_lCN4jFKFFS8fZEwJsJm8eVr1Dao" }
-  });
-  if (!proxied.ok) {
-    const raw = await proxied.text();
-    let message = ""; try { message = JSON.parse(raw).error || "" } catch { }
-    throw new Error(message || `לא ניתן להוריד את תמונת המקור (${proxied.status})`);
-  }
-  return proxied.blob();
-}
-async function generateGeminiInBrowser(imageUrl) {
-  const key = window.ISRAEL_PACKAGES_CONFIG?.geminiApiKey?.trim();
-  if (!key || key === "YOUR_GEMINI_API_KEY") throw new Error("לא הוגדר מפתח Gemini בקובץ config.js");
-  const blob = await fetchImageBlob(imageUrl);
-  const prompt = "Transform the provided image into comic-book-style, cell-shaded graphic novel art with bold, clean outlines and a pure white background. Preserve the person's identity, facial features, expression, pose, proportions, hairstyle, and clothing as faithfully as possible. Stay true to the original image. Do not add, remove, or invent people or objects. Do not add captions, speech bubbles, logos, watermarks, letters, symbols, or text of any kind. NO TEXT WHATSOEVER.";
-  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({ model: "gemini-3.1-flash-image", input: [{ type: "image", mime_type: blob.type || "image/jpeg", data: await blobToBase64(blob) }, { type: "text", text: prompt }], response_format: { type: "image", mime_type: "image/jpeg", image_size: "1K" } })
-  });
-  const raw = await response.text();
-  let result = {}; try { result = JSON.parse(raw) } catch { }
-  if (!response.ok) {
-    const error = new Error(result.error?.message || `Gemini דחה את הבקשה (${response.status})`);
-    error.details = `HTTP ${response.status} ${response.statusText}\n\n${raw || "No response body"}`;
-    throw error;
-  }
-  const image = findGeminiImage(result); if (!image) throw new Error("Gemini לא החזיר תמונה");
-  return `data:${image.mimeType};base64,${image.data}`;
-}
 async function generateGemini(imageUrl) {
-  const key = window.ISRAEL_PACKAGES_CONFIG?.geminiApiKey?.trim();
-  if (key && key !== "YOUR_GEMINI_API_KEY") return generateGeminiInBrowser(imageUrl);
-  if (location.protocol !== "http:" || !["localhost", "127.0.0.1"].includes(location.hostname)) {
-    throw new Error("לא הוגדר מפתח Gemini בקובץ config.js");
-  }
-  const response = await fetch("/api/gemini", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
+  const endpoint = location.protocol === "http:" && ["localhost", "127.0.0.1"].includes(location.hostname) ? "/api/openai-image" : "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/openai-image";
+  const headers = { "Content-Type": "application/json" };
+  if (!endpoint.startsWith("/")) headers["OAI-Sites-Authorization"] = "Bearer MohaGTH8g09N7K2_lCN4jFKFFS8fZEwJsJm8eVr1Dao";
+  const response = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
   const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
   if (!response.ok) { const error = new Error(data.error || "עיבוד התמונה נכשל"); error.details = data.details || `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
   return data.imageUrl;
@@ -253,7 +198,7 @@ function clearGeminiError() {
 function showGeminiError(error) {
   const summary = error?.message || String(error);
   const details = error?.details || error?.stack || summary;
-  state.lastGeminiError = `Gemini image generation error\n${new Date().toISOString()}\n\n${summary}\n\n${details}`;
+  state.lastGeminiError = `OpenAI image generation error\n${new Date().toISOString()}\n\n${summary}\n\n${details}`;
   $("#geminiMessage").textContent = `יצירת התמונה נכשלה: ${summary}`;
   $("#geminiMessage").className = "gemini-message error"; $("#geminiMessage").hidden = false;
   $("#geminiErrorDetails").textContent = state.lastGeminiError; $("#geminiErrorPanel").hidden = false;
@@ -306,7 +251,7 @@ function openReplacementSearch(person) {
   resetImageSearchState();
   $("#addDialogEyebrow").textContent = "עריכת אדם";
   $("#addDialogTitle").textContent = "החלפת תמונה";
-  $("#addDialogDescription").textContent = "חפשו תמונה חדשה בוויקיפדיה או באינטרנט, ואפשר גם ליצור עיבוד Gemini חדש.";
+  $("#addDialogDescription").textContent = "חפשו תמונה חדשה בוויקיפדיה או באינטרנט, ואפשר גם ליצור עיבוד OpenAI חדש.";
   $("#personName").value = person.name; $("#personName").readOnly = true;
   $("#targetPackages").hidden = true;
   $("#savePerson").textContent = "שמירת התמונה החדשה";
@@ -415,14 +360,14 @@ $("#geminiGenerate").onclick = async () => {
   if (!state.selectedWiki) return;
   $("#geminiMessage").hidden = true; $("#geminiMessage").textContent = ""; clearGeminiError();
   $("#wikiStatus").hidden = false;
-  $("#wikiStatus b").textContent = "Gemini מעבד את התמונה…";
+  $("#wikiStatus b").textContent = "OpenAI מעבד את התמונה…";
   $("#wikiStatus span").textContent = "יוצר איור קומיקס תוך שמירה על מראה האדם";
   $("#geminiGenerate").disabled = true; $("#savePerson").disabled = true;
   try {
     state.generatedImage = await generateGemini(state.selectedWiki.imageUrl);
-    $("#geminiPreview").innerHTML = `<span>תוצאת Gemini</span><img src="${state.generatedImage}" alt="גרסת Gemini שנוצרה">`;
+    $("#geminiPreview").innerHTML = `<span>תוצאת OpenAI</span><img src="${state.generatedImage}" alt="גרסת OpenAI שנוצרה">`;
     $("#geminiPreview").hidden = false;
-    $("#geminiMessage").textContent = "גרסת Gemini נוצרה בהצלחה. לאחר השמירה היא תוצג מול תמונת Wikipedia.";
+    $("#geminiMessage").textContent = "גרסת OpenAI נוצרה בהצלחה. לאחר השמירה היא תוצג מול תמונת המקור.";
     $("#geminiMessage").className = "gemini-message success";
     $("#geminiMessage").hidden = false;
   } catch (e) { showGeminiError(e) }
