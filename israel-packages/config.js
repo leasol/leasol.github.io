@@ -3,5 +3,5 @@
  * Never commit a real API key here; production uses the server secret.
  */
 window.ISRAEL_PACKAGES_CONFIG = {
-  openaiApiKey: "sk-proj-JP19toAVGo7yypNLv61YWaIx2oBaok9Zn8IE5GL5MfZ0pm_bK9KSNpkAEK6maoASJvwWL4ymDcT3BlbkFJoe46y5O1jL4ko4IzsXyaLKx9ys7VJvq5tXX7tuNMkDprh-eYnpZLf8e7EtXTMd1v0c8oAn6N8Ask-proj-sEuO5hMwdNU9vds0SDRapz4KLHw1frERH-2hfyP-fQMifCqOmPrqHVH53ExWO9xgFmBEltIA9ZT3BlbkFJ9AJN1iQ-IrNBMhY16dV1Mn6NsjYMahfc6iXqXRaeo7GNm7mN-nvyihILYLoOytgzbld4NMciAA"
+  openaiApiKey: "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"
 };
