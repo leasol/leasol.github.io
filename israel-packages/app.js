@@ -1,13 +1,14 @@
 const STORAGE_KEY = "israelPackageStudioDraftsV1";
 const ALL_PACKAGES_ID = "__all__";
-const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, geminiOverrides: {}, tmdbOverrides: {}, removedGemini: [] } };
+const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, activeImageRequest: null, backgroundJobsStarted: false, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, geminiOverrides: {}, tmdbOverrides: {}, removedGemini: [], imageJobs: [] } };
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 2600) }
 function saveDrafts() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.drafts)) }
 function normalizeDrafts() {
   state.drafts.packages ||= []; state.drafts.additions ||= [];
-  state.drafts.removals ||= []; state.drafts.imageOverrides ||= {}; state.drafts.geminiOverrides ||= {}; state.drafts.tmdbOverrides ||= {}; state.drafts.removedGemini ||= [];
+  state.drafts.removals ||= []; state.drafts.imageOverrides ||= {}; state.drafts.geminiOverrides ||= {}; state.drafts.tmdbOverrides ||= {}; state.drafts.removedGemini ||= []; state.drafts.imageJobs ||= [];
+  if (!state.backgroundJobsStarted) state.drafts.imageJobs.forEach(job => { if (job.status === "running") job.status = "queued"; });
 }
 function cardId(x) { return x.new ? `addition:${x.id}` : `base:${x.packageId}:${x.key}` }
 function isRemoved(x) { return state.drafts.removals.includes(cardId(x)) }
@@ -32,6 +33,7 @@ async function load() {
   $("#targetPackages .package-options").innerHTML = packageOptions(state.packageId === ALL_PACKAGES_ID ? [] : [state.packageId]);
   $("#destinationPackage").innerHTML = state.data.packages.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
   render();
+  if (!state.backgroundJobsStarted) { state.backgroundJobsStarted = true; resumeBackgroundImageJobs(); }
 }
 function current() { return state.packageId === ALL_PACKAGES_ID ? { id: ALL_PACKAGES_ID, name: "כל החבילות", custom: false } : state.data.packages.find(p => p.id === state.packageId) }
 function render() {
@@ -53,7 +55,7 @@ function render() {
     hasGemini: Boolean(a.originalImageUrl && a.imageUrl !== a.originalImageUrl),
     new: true,
     wikipediaUrl: a.wikipediaUrl,
-    tmdbId: a.tmdbId || ""
+    tmdbId: a.tmdbId || "", imageJobId: a.imageJobId || ""
   }));
   let rows = state.filter === "existing" ? existing : state.filter === "new" ? added : [...added, ...existing];
   rows = rows.filter(x => !isRemoved(x)).map(x => {
@@ -86,8 +88,9 @@ function card(x, number) {
     <button class="card-action tmdb-profile" type="button" data-action="tmdb" data-index="${number - 1}">צפייה בפרופיל TMDB</button>
   </div>`;
   const packageDetail = state.packageId === ALL_PACKAGES_ID && x.packageName ? ` · ${escapeHtml(x.packageName)}` : "";
-  const details = x.new ? `נשמר בטיוטת הדפדפן${packageDetail}${x.tmdbId ? ` · TMDB ${escapeHtml(x.tmdbId)}` : ""}` : `${escapeHtml(x.key)}${packageDetail}`;
-  return `<article class="card ${x.new ? "new" : ""}" data-card-id="${escapeHtml(cardId(x))}"><span class="badge">${x.new ? "חדש · טיוטה" : "קיים"}</span>${image}
+  const pending = x.imageJobId ? " · עיבוד AI ברקע" : "";
+  const details = x.new ? `נשמר בטיוטת הדפדפן${pending}${packageDetail}${x.tmdbId ? ` · TMDB ${escapeHtml(x.tmdbId)}` : ""}` : `${escapeHtml(x.key)}${packageDetail}`;
+  return `<article class="card ${x.new ? "new" : ""}" data-card-id="${escapeHtml(cardId(x))}"><span class="badge">${x.new ? x.imageJobId ? "AI ברקע" : "חדש · טיוטה" : "קיים"}</span>${image}
     <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${details}</span>${actions}</div></article>`
 }
 async function findTmdbCandidates(name, alternateName = "") {
@@ -171,22 +174,51 @@ async function webImages(name) {
   if (!response.ok) throw new Error(data.error || `חיפוש האינטרנט נכשל (${response.status})`);
   return data.results || [];
 }
-async function generateOpenAIInBrowser(imageUrl, key) {
+async function generateOpenAIInBrowser(imageUrl, key, name = $("#personName").value.trim(), fallbackImageUrl = state.selectedWiki?.thumbnailUrl || "") {
   const endpoint = "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/openai-image";
-  const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-OpenAI-Key": key }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl, fallbackImageUrl: state.selectedWiki?.thumbnailUrl || "" }) });
+  const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-OpenAI-Key": key }, body: JSON.stringify({ name, imageUrl, fallbackImageUrl }) });
   const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
   if (!response.ok) { const error = new Error((typeof data.error === "string" ? data.error : data.error?.message) || `OpenAI דחה את הבקשה (${response.status})`); error.details = data.details || `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
   if (!data.imageUrl) throw new Error("OpenAI לא החזיר תמונה");
   return data.imageUrl;
 }
-async function generateGemini(imageUrl) {
+async function generateGemini(imageUrl, name = $("#personName").value.trim(), fallbackImageUrl = state.selectedWiki?.thumbnailUrl || "") {
   const browserKey = window.ISRAEL_PACKAGES_CONFIG?.openaiApiKey?.trim();
-  if (browserKey && browserKey !== "YOUR_OPENAI_API_KEY") return generateOpenAIInBrowser(imageUrl, browserKey);
+  if (browserKey && browserKey !== "YOUR_OPENAI_API_KEY") return generateOpenAIInBrowser(imageUrl, browserKey, name, fallbackImageUrl);
   const endpoint = location.protocol === "http:" && ["localhost", "127.0.0.1"].includes(location.hostname) ? "/api/openai-image" : "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/openai-image";
-  const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl, fallbackImageUrl: state.selectedWiki?.thumbnailUrl || "" }) });
+  const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, imageUrl, fallbackImageUrl }) });
   const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
   if (!response.ok) { const error = new Error(data.error || "עיבוד התמונה נכשל"); error.details = data.details || `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
   return data.imageUrl;
+}
+function startBackgroundImageJob(job, existingPromise = null) {
+  if (!job || job.status === "running") return;
+  job.status = "running"; delete job.error; saveDrafts();
+  (existingPromise || generateGemini(job.imageUrl, job.name, job.fallbackImageUrl)).then(imageUrl => {
+    for (const target of job.targets || []) {
+      if (target.type === "addition") {
+        const addition = state.drafts.additions.find(item => item.id === target.id);
+        if (addition) { addition.imageUrl = imageUrl; delete addition.imageJobId; }
+      } else if (target.type === "base") {
+        state.drafts.geminiOverrides[target.id] = imageUrl;
+        state.drafts.removedGemini = state.drafts.removedGemini.filter(id => id !== target.id);
+      }
+    }
+    state.drafts.imageJobs = state.drafts.imageJobs.filter(item => item.id !== job.id);
+    saveDrafts();
+    if (state.data) { render(); toast("עיבוד ה־AI נוסף לטיוטה"); }
+  }).catch(error => {
+    job.status = "failed"; job.error = error?.message || String(error); saveDrafts();
+    if (state.data) { render(); toast("עיבוד ה־AI נכשל; הטיוטה נשמרה עם תמונת המקור"); }
+  });
+}
+function queueBackgroundImageJob(request, targets) {
+  const job = { id: crypto.randomUUID(), name: request.name, imageUrl: request.imageUrl, fallbackImageUrl: request.fallbackImageUrl || "", targets, status: "queued", createdAt: new Date().toISOString() };
+  state.drafts.imageJobs.push(job); saveDrafts(); startBackgroundImageJob(job, request.promise);
+  return job.id;
+}
+function resumeBackgroundImageJobs() {
+  state.drafts.imageJobs.filter(job => job.status === "queued").forEach(startBackgroundImageJob);
 }
 $("#search").oninput = e => { state.query = e.target.value; render() };
 $$("dialog .close").forEach(button => button.onclick = () => button.closest("dialog").close());
@@ -367,16 +399,18 @@ $("#geminiGenerate").onclick = async () => {
   $("#wikiStatus").hidden = false;
   $("#wikiStatus b").textContent = "OpenAI מעבד את התמונה…";
   $("#wikiStatus span").textContent = "יוצר איור קומיקס תוך שמירה על מראה האדם";
-  $("#geminiGenerate").disabled = true; $("#savePerson").disabled = true;
+  $("#geminiGenerate").disabled = true;
   try {
-    state.generatedImage = await generateGemini(state.selectedWiki.imageUrl);
+    state.activeImageRequest = { name: $("#personName").value.trim(), imageUrl: state.selectedWiki.imageUrl, fallbackImageUrl: state.selectedWiki.thumbnailUrl || "", promise: generateGemini(state.selectedWiki.imageUrl) };
+    state.generatedImage = await state.activeImageRequest.promise;
+    state.activeImageRequest = null;
     $("#geminiPreview").innerHTML = `<span>תוצאת OpenAI</span><img src="${state.generatedImage}" alt="גרסת OpenAI שנוצרה">`;
     $("#geminiPreview").hidden = false;
     $("#geminiMessage").textContent = "גרסת OpenAI נוצרה בהצלחה. לאחר השמירה היא תוצג מול תמונת המקור.";
     $("#geminiMessage").className = "gemini-message success";
     $("#geminiMessage").hidden = false;
   } catch (e) { showGeminiError(e) }
-  finally { $("#wikiStatus").hidden = true; $("#wikiStatus b").textContent = "מחפש בוויקיפדיה…"; $("#wikiStatus span").textContent = "בודק ערכים ותמונות זמינות"; $("#geminiGenerate").disabled = false; $("#savePerson").disabled = false }
+  finally { state.activeImageRequest = null; $("#wikiStatus").hidden = true; $("#wikiStatus b").textContent = "מחפש בוויקיפדיה…"; $("#wikiStatus span").textContent = "בודק ערכים ותמונות זמינות"; $("#geminiGenerate").disabled = false }
 };
 $("#addForm").onsubmit = async e => {
   e.preventDefault(); if (!state.selectedWiki) return;
@@ -401,18 +435,69 @@ $("#addForm").onsubmit = async e => {
         state.drafts.removedGemini = [...new Set([...state.drafts.removedGemini, id])];
       }
     }
+    if (state.activeImageRequest) {
+      const targets = person.new ? [{ type: "addition", id: person.id }] : [{ type: "base", id: cardId(person) }];
+      if (person.new) { const addition = state.drafts.additions.find(item => item.id === person.id); if (addition) addition.imageJobId = "pending"; }
+      queueBackgroundImageJob(state.activeImageRequest, targets);
+    }
     saveDrafts(); state.cardAction = null; $("#addDialog").close(); e.target.reset(); resetImageSearchState();
     $("#personName").readOnly = false; $("#targetPackages").hidden = false; await load(); toast("התמונה הוחלפה בטיוטה"); return;
   }
   const packageIds = $$("#targetPackages input:checked").map(input => input.value);
   if (!packageIds.length) { toast("יש לבחור לפחות חבילה אחת"); return; }
   const createdAt = new Date().toISOString();
-  packageIds.forEach(packageId => state.drafts.additions.push({ id: crypto.randomUUID(), packageId, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, tmdbId: $("#tmdbId").value.trim(), createdAt }));
+  const additions = packageIds.map(packageId => ({ id: crypto.randomUUID(), packageId, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, tmdbId: $("#tmdbId").value.trim(), createdAt, imageJobId: state.activeImageRequest ? "pending" : "" }));
+  state.drafts.additions.push(...additions);
+  if (state.activeImageRequest) queueBackgroundImageJob(state.activeImageRequest, additions.map(item => ({ type: "addition", id: item.id })));
   saveDrafts(); $("#addDialog").close(); e.target.reset(); $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = ""; $("#wikiResults").innerHTML = ""; $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true; $("#geminiMessage").hidden = true; state.selectedWiki = null; state.generatedImage = null; await load(); toast(packageIds.length > 1 ? `האדם נוסף ל־${packageIds.length} חבילות בטיוטה` : "האדם נוסף ונשמר בטיוטת הדפדפן");
 };
 $("#packageForm").onsubmit = async e => {
   e.preventDefault(); const name = $("#packageName").value.trim(); const id = "custom_" + Date.now();
   state.drafts.packages.push({ id, name }); saveDrafts(); state.packageId = id; $("#packageDialog").close(); e.target.reset(); await load(); toast("החבילה החדשה נוצרה כטיוטה");
+};
+$("#backfillTmdb").onclick = async () => {
+  const button = $("#backfillTmdb");
+  const peopleByName = new Map();
+  const addTarget = (name, target) => {
+    const normalized = normalizeName(name); if (!normalized) return;
+    const entry = peopleByName.get(normalized) || { name, targets: [] };
+    entry.targets.push(target); peopleByName.set(normalized, entry);
+  };
+  state.data.packages.forEach(pkg => pkg.people.forEach(person => {
+    const id = cardId({ ...person, packageId: pkg.id, new: false });
+    if (!state.drafts.tmdbOverrides[id]) addTarget(person.name, { type: "base", id });
+  }));
+  state.drafts.additions.forEach(person => {
+    if (!person.tmdbId) addTarget(person.name, { type: "addition", id: person.id });
+  });
+  const work = [...peopleByName.values()];
+  if (!work.length) { toast("לכל האנשים כבר יש מזהה TMDB בטיוטה"); return; }
+  button.disabled = true;
+  let next = 0, found = 0, checked = 0;
+  const updateLabel = () => { button.textContent = `מאתר TMDB… ${checked}/${work.length}`; };
+  updateLabel();
+  const worker = async () => {
+    while (next < work.length) {
+      const item = work[next++];
+      try {
+        const match = (await findTmdbCandidates(item.name))[0];
+        if (match) {
+          item.targets.forEach(target => {
+            if (target.type === "base") state.drafts.tmdbOverrides[target.id] = match.id;
+            else { const addition = state.drafts.additions.find(person => person.id === target.id); if (addition) addition.tmdbId = match.id; }
+          });
+          found += item.targets.length; saveDrafts();
+        }
+      } catch { /* Leave people without a match unchanged and continue. */ }
+      checked++; updateLabel();
+    }
+  };
+  try {
+    await Promise.all(Array.from({ length: Math.min(3, work.length) }, worker));
+    saveDrafts(); render(); toast(`הושלמו ${found} מזהי TMDB מתוך ${work.length} חיפושים`);
+  } finally {
+    button.disabled = false; button.textContent = "השלמת מזהי TMDB";
+  }
 };
 $("#exportDraft").onclick = () => {
   const blob = new Blob([JSON.stringify(state.drafts, null, 2)], { type: "application/json" });
