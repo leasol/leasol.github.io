@@ -183,20 +183,7 @@ async function generateGemini(imageUrl) {
   const browserKey = window.ISRAEL_PACKAGES_CONFIG?.openaiApiKey?.trim();
   if (browserKey && browserKey !== "YOUR_OPENAI_API_KEY") return generateOpenAIInBrowser(imageUrl, browserKey);
   const endpoint = location.protocol === "http:" && ["localhost", "127.0.0.1"].includes(location.hostname) ? "/api/openai-image" : "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/openai-image";
-  let studioToken = localStorage.getItem("israelPackageStudioToken") || "";
-  if (!studioToken) {
-    studioToken = prompt("הזינו את סיסמת יצירת התמונות של הסטודיו:")?.trim() || "";
-    if (!studioToken) throw new Error("לא הוזנה סיסמת הסטודיו");
-    localStorage.setItem("israelPackageStudioToken", studioToken);
-  }
-  let response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-Studio-Token": studioToken }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
-  if (response.status === 401) {
-    localStorage.removeItem("israelPackageStudioToken");
-    const retryToken = prompt("סיסמת הסטודיו אינה נכונה. הזינו אותה מחדש:")?.trim() || "";
-    if (!retryToken) throw new Error("סיסמת הסטודיו שגויה או חסרה");
-    localStorage.setItem("israelPackageStudioToken", retryToken);
-    response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-Studio-Token": retryToken }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl }) });
-  }
+  const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: $("#personName").value.trim(), imageUrl, fallbackImageUrl: state.selectedWiki?.thumbnailUrl || "" }) });
   const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
   if (!response.ok) { const error = new Error(data.error || "עיבוד התמונה נכשל"); error.details = data.details || `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
   return data.imageUrl;
