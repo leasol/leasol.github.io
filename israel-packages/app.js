@@ -171,7 +171,35 @@ async function webImages(name) {
   if (!response.ok) throw new Error(data.error || `חיפוש האינטרנט נכשל (${response.status})`);
   return data.results || [];
 }
+async function fetchOpenAIInputImage(imageUrl) {
+  try {
+    const direct = await fetch(imageUrl);
+    if (direct.ok && (direct.headers.get("Content-Type") || "").startsWith("image/")) return direct.blob();
+  } catch { }
+  const proxyUrl = "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/image-proxy?url=" + encodeURIComponent(imageUrl);
+  const proxied = await fetch(proxyUrl);
+  if (!proxied.ok) throw new Error(`לא ניתן להוריד את תמונת המקור (${proxied.status})`);
+  return proxied.blob();
+}
+async function generateOpenAIInBrowser(imageUrl, key) {
+  const blob = await fetchOpenAIInputImage(imageUrl);
+  const extension = blob.type.includes("png") ? "png" : blob.type.includes("webp") ? "webp" : "jpg";
+  const form = new FormData();
+  form.append("model", "gpt-image-2");
+  form.append("image", new File([blob], `source.${extension}`, { type: blob.type || "image/jpeg" }));
+  form.append("prompt", "Transform the provided image into comic-book-style, cell-shaded graphic novel art with bold, clean outlines and a pure white background. Preserve the person's identity, facial features, expression, pose, proportions, hairstyle, and clothing as faithfully as possible. Stay true to the original image. Do not add, remove, or invent people or objects. Do not add captions, speech bubbles, logos, watermarks, letters, symbols, or text of any kind. NO TEXT WHATSOEVER.");
+  form.append("size", "1024x1024"); form.append("quality", "medium"); form.append("output_format", "jpeg");
+  const response = await fetch("https://api.openai.com/v1/images/edits", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: form });
+  const raw = await response.text(); let data = {}; try { data = JSON.parse(raw) } catch { }
+  if (!response.ok) { const error = new Error(data.error?.message || `OpenAI דחה את הבקשה (${response.status})`); error.details = `HTTP ${response.status} ${response.statusText}\n\n${raw}`; throw error }
+  const image = data.data?.[0];
+  if (image?.b64_json) return `data:image/jpeg;base64,${image.b64_json}`;
+  if (image?.url) return image.url;
+  throw new Error("OpenAI לא החזיר תמונה");
+}
 async function generateGemini(imageUrl) {
+  const browserKey = window.ISRAEL_PACKAGES_CONFIG?.openaiApiKey?.trim();
+  if (browserKey && browserKey !== "YOUR_OPENAI_API_KEY") return generateOpenAIInBrowser(imageUrl, browserKey);
   const endpoint = location.protocol === "http:" && ["localhost", "127.0.0.1"].includes(location.hostname) ? "/api/openai-image" : "https://israel-packages-image-search.adar-bokobza.chatgpt.site/api/openai-image";
   let studioToken = localStorage.getItem("israelPackageStudioToken") || "";
   if (!studioToken) {
