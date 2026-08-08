@@ -1,6 +1,7 @@
 const STORAGE_KEY = "israelPackageStudioDraftsV1";
 const ALL_PACKAGES_ID = "__all__";
 const state = { data: null, packageId: null, filter: "all", query: "", selectedWiki: null, generatedImage: null, activeImageRequest: null, backgroundJobsStarted: false, lastGeminiError: "", cardAction: null, highlightCardId: null, drafts: { packages: [], additions: [], removals: [], imageOverrides: {}, geminiOverrides: {}, tmdbOverrides: {}, removedGemini: [], imageJobs: [] } };
+let basePersonAliases = new Map();
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 2600) }
@@ -12,13 +13,165 @@ function normalizeDrafts() {
 }
 function cardId(x) { return x.new ? `addition:${x.id}` : `base:${x.packageId}:${x.key}` }
 function isRemoved(x) { return state.drafts.removals.includes(cardId(x)) }
+function rawBasePersonId(person) {
+  const key = String(person.key || "").trim().toLocaleLowerCase("en-US").replace(/\s+/g, " ");
+  return key ? `base:${key}` : `base-name:${normalizeName(person.name)}`;
+}
+function buildBasePersonAliases() {
+  const byName = new Map();
+  state.data?.packages.forEach(pkg => pkg.people.forEach(person => {
+    const name = normalizeName(person.name);
+    if (!name) return;
+    const identities = byName.get(name) || new Map();
+    const personId = rawBasePersonId(person);
+    if (!identities.has(personId)) identities.set(personId, new Set());
+    identities.get(personId).add(pkg.id);
+    byName.set(name, identities);
+  }));
+  basePersonAliases = new Map();
+  byName.forEach(identities => {
+    const sharedIdentity = [...identities.entries()].filter(([, packageIds]) => packageIds.size > 1).map(([personId]) => personId);
+    const canonicalId = sharedIdentity.length === 1 ? sharedIdentity[0] : null;
+    identities.forEach((_, personId) => basePersonAliases.set(personId, canonicalId || personId));
+  });
+}
+function canonicalPersonId(personId) { return basePersonAliases.get(personId) || personId; }
+function basePersonId(person) { return canonicalPersonId(rawBasePersonId(person)); }
+function legacyAdditionPersonId(person) {
+  const name = normalizeName(person.name);
+  const baseMatches = new Set();
+  state.data?.packages.forEach(pkg => pkg.people.forEach(basePerson => {
+    if (name && normalizeName(basePerson.name) === name) baseMatches.add(basePersonId(basePerson));
+  }));
+  if (baseMatches.size === 1) return [...baseMatches][0];
+  const legacyBatch = person.createdAt
+    ? `${person.createdAt}|${name}|${person.originalImageUrl || person.imageUrl || ""}`
+    : person.id;
+  return `legacy:${legacyBatch}`;
+}
+function personIdFor(person) {
+  return person.personId ? canonicalPersonId(person.personId) : person.new ? legacyAdditionPersonId(person) : basePersonId(person);
+}
+function baseRowsForPerson(personId, packageId, includeRemoved = false) {
+  const pkg = state.data?.packages.find(item => item.id === packageId);
+  if (!pkg) return [];
+  return pkg.people.map(person => ({ ...person, packageId: pkg.id, packageName: pkg.name, new: false, personId: basePersonId(person) }))
+    .filter(person => person.personId === personId && (includeRemoved || !isRemoved(person)));
+}
+function additionRowsForPerson(personId, packageId, includeRemoved = false) {
+  return state.drafts.additions
+    .filter(person => person.packageId === packageId)
+    .map(person => ({ ...person, new: true, personId: personIdFor({ ...person, new: true }) }))
+    .filter(person => person.personId === personId && (includeRemoved || !isRemoved(person)));
+}
+function activeRowsForPerson(personId, packageId) {
+  return [...baseRowsForPerson(personId, packageId), ...additionRowsForPerson(personId, packageId)];
+}
+function membershipIndex() {
+  const index = new Map();
+  const add = (person, pkg) => {
+    const personId = personIdFor(person);
+    if (!index.has(personId)) index.set(personId, new Map());
+    const packages = index.get(personId);
+    if (!packages.has(pkg.id)) packages.set(pkg.id, { id: pkg.id, name: pkg.name, rows: [] });
+    packages.get(pkg.id).rows.push(person);
+  };
+  state.data.packages.forEach(pkg => pkg.people.forEach(person => {
+    const row = { ...person, packageId: pkg.id, packageName: pkg.name, new: false, personId: basePersonId(person) };
+    if (!isRemoved(row)) add(row, pkg);
+  }));
+  state.drafts.additions.forEach(person => {
+    const pkg = state.data.packages.find(item => item.id === person.packageId);
+    const row = { ...person, new: true, personId: personIdFor({ ...person, new: true }) };
+    if (pkg && !isRemoved(row)) add(row, pkg);
+  });
+  return index;
+}
+function membershipPackages(person, index = membershipIndex()) {
+  const packages = index.get(personIdFor(person));
+  return packages ? state.data.packages.filter(pkg => packages.has(pkg.id)).map(pkg => packages.get(pkg.id)) : [];
+}
+function removeAdditionImageJobTargets(ids) {
+  if (!ids.size) return;
+  state.drafts.imageJobs.forEach(job => {
+    if (Array.isArray(job.targets)) job.targets = job.targets.filter(target => target.type !== "addition" || !ids.has(target.id));
+  });
+  state.drafts.imageJobs = state.drafts.imageJobs.filter(job => !Array.isArray(job.targets) || job.targets.length);
+}
+function copyImageJobTargets(source, addition) {
+  const sourceTarget = source.new ? { type: "addition", id: source.id } : { type: "base", id: cardId(source) };
+  let attached = false;
+  state.drafts.imageJobs.forEach(job => {
+    if (!["queued", "running"].includes(job.status)) return;
+    if (!(job.targets || []).some(target => target.type === sourceTarget.type && target.id === sourceTarget.id)) return;
+    if (!(job.targets || []).some(target => target.type === "addition" && target.id === addition.id)) job.targets.push({ type: "addition", id: addition.id });
+    attached = true;
+  });
+  if (attached) addition.imageJobId = "pending";
+}
+function ensureMembership(person, packageId) {
+  const personId = personIdFor(person);
+  if (activeRowsForPerson(personId, packageId).length) return false;
+  const baseRows = baseRowsForPerson(personId, packageId, true);
+  if (baseRows.length) {
+    const restored = new Set(baseRows.map(cardId));
+    state.drafts.removals = state.drafts.removals.filter(id => !restored.has(id));
+    return true;
+  }
+  const additionRows = additionRowsForPerson(personId, packageId, true);
+  if (additionRows.length) {
+    const restored = new Set(additionRows.map(cardId));
+    state.drafts.removals = state.drafts.removals.filter(id => !restored.has(id));
+    return true;
+  }
+  const addition = additionFromCard(person, packageId);
+  state.drafts.additions.push(addition);
+  copyImageJobTargets(person, addition);
+  return true;
+}
+function removeMembership(person, packageId) {
+  const personId = personIdFor(person);
+  const baseRows = baseRowsForPerson(personId, packageId);
+  if (baseRows.length) state.drafts.removals = [...new Set([...state.drafts.removals, ...baseRows.map(cardId)])];
+  const additions = additionRowsForPerson(personId, packageId, true);
+  if (additions.length) {
+    const ids = new Set(additions.map(item => item.id));
+    state.drafts.additions = state.drafts.additions.filter(item => !ids.has(item.id));
+    removeAdditionImageJobTargets(ids);
+  }
+  return baseRows.length + additions.length;
+}
+function removePhysicalCard(person) {
+  if (!person.new) {
+    state.drafts.removals = [...new Set([...state.drafts.removals, cardId(person)])];
+    return;
+  }
+  state.drafts.additions = state.drafts.additions.filter(item => item.id !== person.id);
+  removeAdditionImageJobTargets(new Set([person.id]));
+}
+function reconcileMemberships(person, selectedPackageIds) {
+  const selected = new Set(selectedPackageIds);
+  const current = new Set(membershipPackages(person).map(pkg => pkg.id));
+  let added = 0, removed = 0;
+  selected.forEach(packageId => { if (!current.has(packageId) && ensureMembership(person, packageId)) added++; });
+  current.forEach(packageId => { if (!selected.has(packageId)) removed += Boolean(removeMembership(person, packageId)); });
+  return { added, removed };
+}
+function moveToPackages(person, selectedPackageIds) {
+  const destinations = [...new Set(selectedPackageIds)].filter(packageId => packageId !== person.packageId);
+  if (!destinations.length) return { added: 0, destinations: 0 };
+  let added = 0;
+  destinations.forEach(packageId => { if (ensureMembership(person, packageId)) added++; });
+  removePhysicalCard(person);
+  return { added, destinations: destinations.length };
+}
 function packageDisplayCount(pkg) {
   const existingCount = pkg.people.filter(person => !isRemoved({ ...person, packageId: pkg.id, new: false })).length;
   const additionsCount = state.data.additions.filter(person => person.packageId === pkg.id && !isRemoved({ ...person, new: true })).length;
   return existingCount + additionsCount;
 }
-function packageOptions(selected = []) {
-  return state.data.packages.map(p => `<label><input type="checkbox" name="targetPackages" value="${escapeHtml(p.id)}" ${selected.includes(p.id) ? "checked" : ""}><span>${escapeHtml(p.name)}</span></label>`).join("");
+function packageOptions(selected = [], name = "targetPackages") {
+  return state.data.packages.map(p => `<label><input type="checkbox" name="${escapeHtml(name)}" value="${escapeHtml(p.id)}" ${selected.includes(p.id) ? "checked" : ""}><span>${escapeHtml(p.name)}</span></label>`).join("");
 }
 async function load() {
   const response = await fetch("data.json"); if (!response.ok) throw new Error("קובץ הנתונים אינו זמין");
@@ -26,12 +179,12 @@ async function load() {
   try { state.drafts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || state.drafts } catch { }
   normalizeDrafts();
   state.data = { packages: [...base.packages, ...state.drafts.packages.map(p => ({ ...p, people: [], count: 0, custom: true }))], additions: state.drafts.additions };
+  buildBasePersonAliases();
   state.packageId = state.packageId || ALL_PACKAGES_ID;
   $("#packageCount").textContent = state.data.packages.length;
   $("#peopleCount").textContent = base.packages.reduce((n, p) => n + p.count, 0).toLocaleString("he-IL");
   $("#newCount").textContent = state.data.additions.length;
   $("#targetPackages .package-options").innerHTML = packageOptions(state.packageId === ALL_PACKAGES_ID ? [] : [state.packageId]);
-  $("#destinationPackage").innerHTML = state.data.packages.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
   render();
   if (!state.backgroundJobsStarted) { state.backgroundJobsStarted = true; resumeBackgroundImageJobs(); }
 }
@@ -42,7 +195,7 @@ function render() {
   $("#packages").innerHTML = `<button class="all-packages ${p.id === ALL_PACKAGES_ID ? "active" : ""}" data-id="${ALL_PACKAGES_ID}"><span>כל החבילות</span><small>${allCount}</small></button>` + state.data.packages.map(x => `<button class="${x.id === p.id ? "active" : ""}" data-id="${x.id}"><span>${escapeHtml(x.name)}${x.custom ? " · טיוטה" : ""}</span><small>${packageDisplayCount(x)}</small></button>`).join("");
   $("#packageTitle").textContent = p.name; $("#packageTag").textContent = p.id === ALL_PACKAGES_ID ? "חיפוש ותצוגה בכל החבילות" : p.custom ? "חבילה חדשה · טיוטה" : "מתוך ה־manifest";
   const visiblePackages = p.id === ALL_PACKAGES_ID ? state.data.packages : [p];
-  const existing = visiblePackages.flatMap(pkg => pkg.people.map(x => ({ ...x, packageId: pkg.id, packageName: pkg.name, new: false, hasGemini: Boolean(x.gemini) })));
+  const existing = visiblePackages.flatMap(pkg => pkg.people.map(x => ({ ...x, packageId: pkg.id, packageName: pkg.name, new: false, personId: basePersonId(x), hasGemini: Boolean(x.gemini) })));
   const visiblePackageIds = new Set(visiblePackages.map(pkg => pkg.id));
   const added = state.data.additions.filter(a => visiblePackageIds.has(a.packageId)).map(a => ({
     key: a.id,
@@ -55,7 +208,7 @@ function render() {
     hasGemini: Boolean(a.originalImageUrl && a.imageUrl !== a.originalImageUrl),
     new: true,
     wikipediaUrl: a.wikipediaUrl,
-    tmdbId: a.tmdbId || "", imageJobId: a.imageJobId || ""
+    tmdbId: a.tmdbId || "", imageJobId: a.imageJobId || "", personId: personIdFor({ ...a, new: true })
   }));
   let rows = state.filter === "existing" ? existing : state.filter === "new" ? added : [...added, ...existing];
   rows = rows.filter(x => !isRemoved(x)).map(x => {
@@ -66,32 +219,65 @@ function render() {
   if (state.filter === "missingGemini") rows = rows.filter(x => !x.hasGemini);
   if (state.query) rows = rows.filter(x => (x.name + " " + x.key).toLowerCase().includes(state.query.toLowerCase()));
   $("#resultCount").textContent = `${rows.length} אנשים`;
-  $("#people").innerHTML = rows.length ? rows.map((person, index) => card(person, index + 1)).join("") : `<div class="empty"><b>לא נמצאו אנשים</b><br>אפשר לשנות את החיפוש או להוסיף אדם חדש לחבילה.</div>`;
+  const memberships = membershipIndex();
+  $("#people").innerHTML = rows.length ? rows.map((person, index) => card(person, index + 1, memberships)).join("") : `<div class="empty"><b>לא נמצאו אנשים</b><br>אפשר לשנות את החיפוש או להוסיף אדם חדש לחבילה.</div>`;
   $$("nav button").forEach(b => b.onclick = () => { state.packageId = b.dataset.id; render() });
   $$(".compare input").forEach(input => input.oninput = () => input.parentElement.style.setProperty("--split", input.value + "%"));
-  $$(".card-action").forEach(button => button.onclick = () => button.dataset.action === "tmdb" ? openTmdbProfile(rows[+button.dataset.index]) : openCardAction(button.dataset.action, rows[+button.dataset.index]));
+  $$(".card-action").forEach(button => button.onclick = () => {
+    const person = rows[+button.dataset.index];
+    if (button.dataset.action === "tmdb") return openTmdbProfile(person);
+    if (button.dataset.action === "generate-ai") return generateCardAiImage(person);
+    openCardAction(button.dataset.action, person);
+  });
   if (state.highlightCardId) {
     const target = $$(".card").find(card => card.dataset.cardId === state.highlightCardId);
     if (target) requestAnimationFrame(() => { target.classList.add("person-highlight"); target.scrollIntoView({ behavior: "smooth", block: "center" }); state.highlightCardId = null; });
   }
 }
-function card(x, number) {
+function card(x, number, memberships) {
   const originalLabel = x.new ? "Wikipedia" : "מקור";
   const image = !x.hasGemini
     ? `<div class="compare"><img src="${x.original}" alt="התמונה שנבחרה עבור ${escapeHtml(x.name)}" loading="lazy"></div>`
     : `<div class="compare" style="--split:50%"><img src="${x.original}" alt="תמונת המקור של ${escapeHtml(x.name)}" loading="lazy"><img class="after" src="${x.gemini}" alt="תמונת עיבוד AI של ${escapeHtml(x.name)}" loading="lazy"><div class="compare-line"></div><input type="range" min="0" max="100" value="50" aria-label="השוואת לפני ואחרי"><div class="labels"><span>${originalLabel}</span><span>עיבוד AI</span></div></div>`;
+  const generatingAi = isCardAiGenerationPending(x);
   const actions = `<div class="card-actions" aria-label="פעולות עבור ${escapeHtml(x.name)}">
+    <button class="card-action generate-ai" type="button" data-action="generate-ai" data-index="${number - 1}" ${generatingAi ? "disabled" : ""}>${generatingAi ? "יוצר גרסת AI…" : x.hasGemini ? "יצירת גרסת AI חדשה" : "יצירת גרסת AI"}</button>
     <button class="card-action" type="button" data-action="replace" data-index="${number - 1}">החלפת תמונה</button>
-    <button class="card-action" type="button" data-action="move" data-index="${number - 1}">העברה לחבילה</button>
-    <button class="card-action" type="button" data-action="copy" data-index="${number - 1}">העתקה לחבילה</button>
+    <button class="card-action" type="button" data-action="move" data-index="${number - 1}">העברה לחבילות</button>
+    <button class="card-action" type="button" data-action="copy" data-index="${number - 1}">עריכת חבילות</button>
     <button class="card-action remove-person" type="button" data-action="remove" data-index="${number - 1}">הסרת אדם</button>
     <button class="card-action tmdb-profile" type="button" data-action="tmdb" data-index="${number - 1}">צפייה בפרופיל TMDB</button>
   </div>`;
   const packageDetail = state.packageId === ALL_PACKAGES_ID && x.packageName ? ` · ${escapeHtml(x.packageName)}` : "";
-  const pending = x.imageJobId ? " · עיבוד AI ברקע" : "";
+  const pending = x.imageJobId || generatingAi ? " · עיבוד AI ברקע" : "";
   const details = x.new ? `נשמר בטיוטת הדפדפן${pending}${packageDetail}${x.tmdbId ? ` · TMDB ${escapeHtml(x.tmdbId)}` : ""}` : `${escapeHtml(x.key)}${packageDetail}`;
+  const packages = membershipPackages(x, memberships).map(pkg => escapeHtml(pkg.name)).join(" · ");
   return `<article class="card ${x.new ? "new" : ""}" data-card-id="${escapeHtml(cardId(x))}"><span class="badge">${x.new ? x.imageJobId ? "AI ברקע" : "חדש · טיוטה" : "קיים"}</span>${image}
-    <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><span>${details}</span>${actions}</div></article>`
+    <div class="card-info"><b>${number}. ${escapeHtml(x.name)}</b><small class="card-packages">חבילות: ${packages || "—"}</small><span>${details}</span>${actions}</div></article>`
+}
+function isCardAiGenerationPending(person) {
+  const id = person.new ? person.id : cardId(person);
+  const type = person.new ? "addition" : "base";
+  return state.drafts.imageJobs.some(job => ["queued", "running"].includes(job.status) && (job.targets || []).some(target => target.type === type && target.id === id));
+}
+function generateCardAiImage(person) {
+  if (isCardAiGenerationPending(person)) return;
+  const sourceImage = person.original;
+  if (!sourceImage) { toast("אין תמונת מקור ליצירת גרסת AI"); return; }
+  const request = {
+    name: person.name,
+    imageUrl: sourceImage,
+    fallbackImageUrl: sourceImage,
+    promise: generateGemini(sourceImage, person.name, sourceImage)
+  };
+  const targets = person.new ? [{ type: "addition", id: person.id }] : [{ type: "base", id: cardId(person) }];
+  if (person.new) {
+    const addition = state.drafts.additions.find(item => item.id === person.id);
+    if (addition) addition.imageJobId = "pending";
+  }
+  queueBackgroundImageJob(request, targets);
+  render();
+  toast(`יוצר גרסת OpenAI עבור ${person.name}…`);
 }
 async function findTmdbCandidates(name, alternateName = "") {
   const queries = [...new Set([name, alternateName].map(value => String(value || "").trim()).filter(Boolean))];
@@ -248,8 +434,8 @@ $("#copyGeminiError").onclick = async () => {
 };
 function additionFromCard(x, packageId) {
   return {
-    id: crypto.randomUUID(), packageId, name: x.name,
-    imageUrl: x.gemini || x.original, originalImageUrl: x.original,
+    id: crypto.randomUUID(), personId: personIdFor(x), packageId, name: x.name,
+    imageUrl: x.gemini || x.imageUrl || x.original, originalImageUrl: x.originalImageUrl || x.original || x.imageUrl,
     wikipediaUrl: x.wikipediaUrl || "", tmdbId: x.tmdbId || "", createdAt: new Date().toISOString()
   };
 }
@@ -259,18 +445,26 @@ function openCardAction(action, person) {
     return;
   }
   state.cardAction = { action, person };
-  const labels = { replace: "החלפת תמונה", move: "העברה לחבילה", copy: "העתקה לחבילה", remove: "הסרת אדם" };
+  const labels = { replace: "החלפת תמונה", move: "העברה לחבילות", copy: "עריכת חבילות", remove: "הסרת אדם" };
   $("#cardActionTitle").textContent = labels[action];
   $("#cardActionEyebrow").textContent = person.name;
-  $("#destinationPackageField").hidden = !["move", "copy"].includes(action);
-  $("#destinationPackage").value = state.data.packages.find(p => p.id !== person.packageId)?.id || person.packageId;
+  const isPackageAction = ["move", "copy"].includes(action);
+  $("#destinationPackages").hidden = !isPackageAction;
+  if (isPackageAction) {
+    const selected = action === "copy" ? membershipPackages(person).map(pkg => pkg.id) : [];
+    $("#destinationPackages .package-options").innerHTML = packageOptions(selected, "actionPackages");
+    $("#destinationPackagesTitle").textContent = action === "copy" ? "החבילות של האדם" : "חבילות יעד";
+    $("#destinationPackagesHint").textContent = action === "copy"
+      ? "סמנו את כל החבילות שבהן האדם צריך להופיע. אפשר להוסיף ולהסיר חבילות בפעולה אחת."
+      : "בחרו חבילת יעד אחת או יותר. החבילה הנוכחית תוסר מהכרטיס הזה.";
+  }
   const descriptions = {
-    move: "האדם יוסר מהחבילה הנוכחית ויופיע בחבילת היעד.",
-    copy: "עותק של האדם יתווסף לחבילת היעד, והמקור יישאר כאן.",
+    move: "אפשר להעביר את הכרטיס לחבילה אחת או ליותר. חברויות קיימות אחרות של האדם אינן משתנות.",
+    copy: "נהל את כל החבילות של האדם כאן: סימון מוסיף חבילה וביטול סימון מסיר אותה.",
     remove: "האדם יוסר מחבילה זו בטיוטה. אפשר לשחזר באמצעות מחיקת הטיוטות בדפדפן."
   };
   $("#cardActionDescription").textContent = descriptions[action];
-  $("#saveCardAction").textContent = action === "remove" ? "הסרה כטיוטה" : "שמירה כטיוטה";
+  $("#saveCardAction").textContent = action === "remove" ? "הסרה כטיוטה" : action === "copy" ? "עדכון החבילות" : "העברה כטיוטה";
   $("#cardActionDialog").showModal();
 }
 function resetImageSearchState() {
@@ -302,27 +496,31 @@ function findExistingPeople(value) {
     if (pkg.id === state.packageId) return;
     pkg.people.forEach(person => {
       const item = { ...person, packageId: pkg.id, new: false };
-      if (!isRemoved(item) && normalizeName(person.name).includes(query)) matches.push({ packageId: pkg.id, packageName: pkg.name, cardId: cardId(item), name: person.name });
+      if (!isRemoved(item) && normalizeName(person.name).includes(query)) matches.push(existingPersonMatch(item, pkg.name));
     });
     state.drafts.additions.filter(person => person.packageId === pkg.id).forEach(person => {
       const item = { ...person, new: true };
-      if (!isRemoved(item) && normalizeName(person.name).includes(query)) matches.push({ packageId: pkg.id, packageName: pkg.name, cardId: cardId(item), name: person.name });
+      if (!isRemoved(item) && normalizeName(person.name).includes(query)) matches.push(existingPersonMatch(item, pkg.name));
     });
   });
   return matches.slice(0, 10);
+}
+function existingPersonMatch(person, packageName) {
+  const id = cardId(person);
+  const original = state.drafts.imageOverrides[id] || person.originalImageUrl || person.original || person.imageUrl;
+  const geminiRemoved = state.drafts.removedGemini.includes(id);
+  const gemini = state.drafts.geminiOverrides[id] || (geminiRemoved ? null : person.gemini);
+  return { name: person.name, packageName, original, gemini, new: person.new };
 }
 function showExistingPeople() {
   const matches = findExistingPeople($("#personName").value);
   const panel = $("#existingPeople");
   panel.hidden = !matches.length;
   if (!matches.length) { panel.innerHTML = ""; return; }
-  panel.innerHTML = `<b>האדם כבר קיים בחבילה אחרת — לחצו כדי להציג אותו:</b>${matches.map((match, index) => `<button type="button" class="existing-person-option" data-index="${index}"><span>${escapeHtml(match.name)}</span><small>${escapeHtml(match.packageName)}</small></button>`).join("")}`;
-  $$(".existing-person-option").forEach(button => button.onclick = () => {
-    const match = matches[+button.dataset.index];
-    state.packageId = match.packageId; state.filter = "all"; state.query = ""; state.highlightCardId = match.cardId;
-    $("#search").value = ""; $$(".tabs button").forEach(tab => tab.classList.toggle("active", tab.dataset.filter === "all")); $("#showMissingGemini").classList.remove("active");
-    $("#addDialog").close(); render(); toast(`נפתח: ${match.name} · ${match.packageName}`);
-  });
+  panel.innerHTML = `<b>האדם כבר קיים בחבילה אחרת:</b><span class="existing-people-hint">הכרטיסים הקיימים מוצגים כאן, כך שאין צורך לצאת מהחלון.</span><div class="existing-person-cards">${matches.map(match => {
+    const image = match.gemini || match.original;
+    return `<article class="existing-person-card"><img src="${escapeHtml(image)}" alt="תמונה של ${escapeHtml(match.name)}" loading="lazy"><div><strong>${escapeHtml(match.name)}</strong><small>${escapeHtml(match.packageName)}</small><span>${match.new ? "חדש · טיוטה" : "קיים"}</span></div></article>`;
+  }).join("")}</div>`;
 }
 let existingPeopleTimer;
 $("#personName").oninput = () => { clearTimeout(existingPeopleTimer); existingPeopleTimer = setTimeout(showExistingPeople, 350); };
@@ -336,23 +534,24 @@ $("#cardActionForm").onsubmit = async e => {
   e.preventDefault();
   const operation = state.cardAction; if (!operation) return;
   const { action, person } = operation;
+  let message;
   if (action === "remove") {
     if (!confirm(`להסיר את ${person.name} מחבילה זו?`)) return;
-    if (person.new) state.drafts.additions = state.drafts.additions.filter(item => item.id !== person.id);
-    else state.drafts.removals = [...new Set([...state.drafts.removals, cardId(person)])];
+    removePhysicalCard(person);
+    message = "האדם הוסר מהחבילה בטיוטה";
+  } else if (action === "move") {
+    const selected = $$("#destinationPackages input:checked").map(input => input.value);
+    const result = moveToPackages(person, selected);
+    if (!result.destinations) { toast("יש לבחור לפחות חבילת יעד אחת אחרת"); return; }
+    message = result.destinations > 1 ? `האדם הועבר ל־${result.destinations} חבילות בטיוטה` : "האדם הועבר לחבילה בטיוטה";
   } else {
-    const destination = $("#destinationPackage").value;
-    if (!destination || destination === person.packageId) { toast("יש לבחור חבילה אחרת"); return; }
-    if (action === "move" && person.new) {
-      const item = state.drafts.additions.find(item => item.id === person.id);
-      if (item) item.packageId = destination;
-    } else {
-      state.drafts.additions.push(additionFromCard(person, destination));
-      if (action === "move") state.drafts.removals = [...new Set([...state.drafts.removals, cardId(person)])];
-    }
+    const selected = $$("#destinationPackages input:checked").map(input => input.value);
+    if (!selected.length && !confirm(`להסיר את ${person.name} מכל החבילות?`)) return;
+    const result = reconcileMemberships(person, selected);
+    message = result.added || result.removed ? "החבילות עודכנו בטיוטה" : "לא בוצע שינוי בחבילות";
   }
   saveDrafts(); $("#cardActionDialog").close(); state.cardAction = null; await load();
-  toast(action === "remove" ? "האדם הוסר בטיוטה" : action === "move" ? "האדם הועבר בטיוטה" : "העתק נוסף בטיוטה");
+  toast(message);
 };
 $("#openAdd").onclick = () => {
   state.cardAction = null; resetImageSearchState();
@@ -446,7 +645,8 @@ $("#addForm").onsubmit = async e => {
   const packageIds = $$("#targetPackages input:checked").map(input => input.value);
   if (!packageIds.length) { toast("יש לבחור לפחות חבילה אחת"); return; }
   const createdAt = new Date().toISOString();
-  const additions = packageIds.map(packageId => ({ id: crypto.randomUUID(), packageId, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, tmdbId: $("#tmdbId").value.trim(), createdAt, imageJobId: state.activeImageRequest ? "pending" : "" }));
+  const personId = `draft:${crypto.randomUUID()}`;
+  const additions = packageIds.map(packageId => ({ id: crypto.randomUUID(), personId, packageId, name: $("#personName").value.trim(), imageUrl: state.generatedImage || state.selectedWiki.imageUrl, originalImageUrl: state.selectedWiki.imageUrl, wikipediaUrl: state.selectedWiki.pageUrl, tmdbId: $("#tmdbId").value.trim(), createdAt, imageJobId: state.activeImageRequest ? "pending" : "" }));
   state.drafts.additions.push(...additions);
   if (state.activeImageRequest) queueBackgroundImageJob(state.activeImageRequest, additions.map(item => ({ type: "addition", id: item.id })));
   saveDrafts(); $("#addDialog").close(); e.target.reset(); $("#existingPeople").hidden = true; $("#existingPeople").innerHTML = ""; $("#wikiResults").innerHTML = ""; $("#geminiGenerate").hidden = true; $("#geminiPreview").hidden = true; $("#geminiMessage").hidden = true; state.selectedWiki = null; state.generatedImage = null; await load(); toast(packageIds.length > 1 ? `האדם נוסף ל־${packageIds.length} חבילות בטיוטה` : "האדם נוסף ונשמר בטיוטת הדפדפן");
@@ -455,52 +655,64 @@ $("#packageForm").onsubmit = async e => {
   e.preventDefault(); const name = $("#packageName").value.trim(); const id = "custom_" + Date.now();
   state.drafts.packages.push({ id, name }); saveDrafts(); state.packageId = id; $("#packageDialog").close(); e.target.reset(); await load(); toast("החבילה החדשה נוצרה כטיוטה");
 };
-$("#backfillTmdb").onclick = async () => {
-  const button = $("#backfillTmdb");
-  const peopleByName = new Map();
-  const addTarget = (name, target) => {
-    const normalized = normalizeName(name); if (!normalized) return;
-    const entry = peopleByName.get(normalized) || { name, targets: [] };
-    entry.targets.push(target); peopleByName.set(normalized, entry);
-  };
-  state.data.packages.forEach(pkg => pkg.people.forEach(person => {
-    const id = cardId({ ...person, packageId: pkg.id, new: false });
-    if (!state.drafts.tmdbOverrides[id]) addTarget(person.name, { type: "base", id });
-  }));
-  state.drafts.additions.forEach(person => {
-    if (!person.tmdbId) addTarget(person.name, { type: "addition", id: person.id });
-  });
-  const work = [...peopleByName.values()];
-  if (!work.length) { toast("לכל האנשים כבר יש מזהה TMDB בטיוטה"); return; }
-  button.disabled = true;
-  let next = 0, found = 0, checked = 0;
-  const updateLabel = () => { button.textContent = `מאתר TMDB… ${checked}/${work.length}`; };
-  updateLabel();
-  const worker = async () => {
-    while (next < work.length) {
-      const item = work[next++];
-      try {
-        const match = (await findTmdbCandidates(item.name))[0];
-        if (match) {
-          item.targets.forEach(target => {
-            if (target.type === "base") state.drafts.tmdbOverrides[target.id] = match.id;
-            else { const addition = state.drafts.additions.find(person => person.id === target.id); if (addition) addition.tmdbId = match.id; }
-          });
-          found += item.targets.length; saveDrafts();
-        }
-      } catch { /* Leave people without a match unchanged and continue. */ }
-      checked++; updateLabel();
-    }
-  };
-  try {
-    await Promise.all(Array.from({ length: Math.min(3, work.length) }, worker));
-    saveDrafts(); render(); toast(`הושלמו ${found} מזהי TMDB מתוך ${work.length} חיפושים`);
-  } finally {
-    button.disabled = false; button.textContent = "השלמת מזהי TMDB";
-  }
-};
 $("#exportDraft").onclick = () => {
   const blob = new Blob([JSON.stringify(state.drafts, null, 2)], { type: "application/json" });
   const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `israel-packages-draft-${new Date().toISOString().slice(0, 10)}.json`; link.click(); URL.revokeObjectURL(link.href); toast("קובץ הטיוטה הורד");
+};
+function importableAddition(item, packageIds, usedMemberships) {
+  if (!item || typeof item !== "object") return null;
+  const packageId = String(item.packageId || "").trim();
+  const name = String(item.name || "").trim();
+  const membership = `${packageId}:${normalizeName(name)}`;
+  if (!packageIds.has(packageId) || !name || usedMemberships.has(membership)) return null;
+  usedMemberships.add(membership);
+  const importedPersonId = String(item.personId || "").trim() || legacyAdditionPersonId({ ...item, id: item.id || crypto.randomUUID(), new: true });
+  return {
+    id: crypto.randomUUID(),
+    personId: canonicalPersonId(importedPersonId),
+    packageId, name,
+    imageUrl: String(item.imageUrl || item.originalImageUrl || ""),
+    originalImageUrl: String(item.originalImageUrl || item.imageUrl || ""),
+    wikipediaUrl: String(item.wikipediaUrl || ""), tmdbId: String(item.tmdbId || ""),
+    createdAt: String(item.createdAt || new Date().toISOString()), imageJobId: ""
+  };
+}
+function mergeImportedDraft(imported) {
+  if (!imported || typeof imported !== "object" || Array.isArray(imported)) throw new Error("הקובץ אינו טיוטה תקינה");
+  const incomingPackages = Array.isArray(imported.packages) ? imported.packages : [];
+  const knownPackages = new Set(state.data.packages.map(pkg => pkg.id));
+  let packagesAdded = 0;
+  incomingPackages.forEach(pkg => {
+    const id = String(pkg?.id || "").trim(), name = String(pkg?.name || "").trim();
+    if (id && name && !knownPackages.has(id)) { state.drafts.packages.push({ id, name }); knownPackages.add(id); packagesAdded++; }
+  });
+  const usedMemberships = new Set();
+  state.data.packages.forEach(pkg => pkg.people.forEach(person => usedMemberships.add(`${pkg.id}:${normalizeName(person.name)}`)));
+  state.drafts.additions.forEach(person => usedMemberships.add(`${person.packageId}:${normalizeName(person.name)}`));
+  let additionsAdded = 0, duplicatesSkipped = 0, invalidSkipped = 0;
+  (Array.isArray(imported.additions) ? imported.additions : []).forEach(item => {
+    const before = `${String(item?.packageId || "").trim()}:${normalizeName(item?.name)}`;
+    const addition = importableAddition(item, knownPackages, usedMemberships);
+    if (addition) additionsAdded++;
+    else if (before !== ":" && usedMemberships.has(before)) duplicatesSkipped++;
+    else invalidSkipped++;
+    if (addition) state.drafts.additions.push(addition);
+  });
+  return { packagesAdded, additionsAdded, duplicatesSkipped, invalidSkipped };
+}
+$("#importDraft").onclick = () => $("#importDraftFile").click();
+$("#importDraftFile").onchange = async event => {
+  const file = event.target.files?.[0]; event.target.value = "";
+  if (!file) return;
+  try {
+    const imported = JSON.parse(await file.text());
+    const result = mergeImportedDraft(imported);
+    saveDrafts(); await load();
+    const details = [`${result.additionsAdded} תוספות יובאו`];
+    if (result.packagesAdded) details.push(`${result.packagesAdded} חבילות יובאו`);
+    if (result.duplicatesSkipped) details.push(`${result.duplicatesSkipped} כפילויות דולגו`);
+    if (result.invalidSkipped) details.push(`${result.invalidSkipped} רשומות לא תקינות דולגו`);
+    toast(details.join(" · "));
+  } catch (error) { toast(error instanceof Error ? error.message : "ייבוא הטיוטה נכשל"); }
 };
 load().catch(e => { $("#people").innerHTML = `<div class="empty"><b>לא הצלחנו לטעון את החבילות</b><br>${escapeHtml(e.message)}</div>` });
