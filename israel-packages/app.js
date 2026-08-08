@@ -240,8 +240,9 @@ function card(x, number, memberships) {
     ? `<div class="compare"><img src="${x.original}" alt="התמונה שנבחרה עבור ${escapeHtml(x.name)}" loading="lazy"></div>`
     : `<div class="compare" style="--split:50%"><img src="${x.original}" alt="תמונת המקור של ${escapeHtml(x.name)}" loading="lazy"><img class="after" src="${x.gemini}" alt="תמונת עיבוד AI של ${escapeHtml(x.name)}" loading="lazy"><div class="compare-line"></div><input type="range" min="0" max="100" value="50" aria-label="השוואת לפני ואחרי"><div class="labels"><span>${originalLabel}</span><span>עיבוד AI</span></div></div>`;
   const generatingAi = isCardAiGenerationPending(x);
+  const generateAiAction = x.hasGemini ? "" : `<button class="card-action generate-ai" type="button" data-action="generate-ai" data-index="${number - 1}" ${generatingAi ? "disabled" : ""}>${generatingAi ? "יוצר גרסת AI…" : "יצירת גרסת AI"}</button>`;
   const actions = `<div class="card-actions" aria-label="פעולות עבור ${escapeHtml(x.name)}">
-    <button class="card-action generate-ai" type="button" data-action="generate-ai" data-index="${number - 1}" ${generatingAi ? "disabled" : ""}>${generatingAi ? "יוצר גרסת AI…" : x.hasGemini ? "יצירת גרסת AI חדשה" : "יצירת גרסת AI"}</button>
+    ${generateAiAction}
     <button class="card-action" type="button" data-action="replace" data-index="${number - 1}">החלפת תמונה</button>
     <button class="card-action" type="button" data-action="move" data-index="${number - 1}">העברה לחבילות</button>
     <button class="card-action" type="button" data-action="copy" data-index="${number - 1}">עריכת חבילות</button>
