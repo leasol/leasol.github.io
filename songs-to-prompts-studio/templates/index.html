@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>סטודיו שירים לפרומפטים</title><link rel="stylesheet" href="static/studio.css">
+</head><body>
+  <header class="topbar"><a class="brand" href="#"><span class="mark">♫</span><span>סטודיו שירים לפרומפטים</span></a>
+    <div class="top-actions"><div class="top-stats"><div><b id="songCount">—</b><span>שירים</span></div><div><b id="promptedCount">—</b><span>עם פרומפט</span></div><div class="accent"><b id="missingCount">—</b><span>להשלמה</span></div></div>
+    <input id="importFile" type="file" accept="application/json,.json" hidden><button class="secondary" id="importButton">ייבוא נתונים</button><a class="secondary" href="/api/export">ייצוא נתונים</a><button class="primary" id="addButton">＋ שיר חדש</button></div>
+  </header>
+  <main><section class="hero"><div><span class="eyebrow">SONGS TO PROMPTS</span><h1>הספרייה שלך,<br><em>מוכנה ליצירה.</em></h1><p>עריכה, חיפוש והשלמת פרומפטים לכל השירים שנאספו. השינויים נשמרים ישירות בקובץ הנתונים של הסטודיו.</p></div><div class="hero-stats"><div><b id="heroSongs">—</b><span>שירים</span></div><div><b id="heroArtists">—</b><span>אמנים</span></div><div class="accent"><b id="heroCoverage">—</b><span>כיסוי</span></div></div></section>
+  <section class="toolbar"><label class="search"><span>⌕</span><input id="search" placeholder="חיפוש שיר, אמן, מילים או פרומפט..." autocomplete="off"></label><div class="tabs"><button class="active" data-status="all">הכול</button><button data-status="prompted">עם פרומפט</button><button data-status="missing">ללא פרומפט</button></div></section>
+  <section class="workspace"><aside><h2>אמנים</h2><nav id="artists"></nav></aside><div class="content"><div class="section-head"><div><span id="sectionTag">כל השירים</span><h2 id="sectionTitle">טוען...</h2></div><span id="resultCount"></span></div><div id="songs" class="songs-grid"><div class="page-loader"><i></i>קורא את ספריית השירים…</div></div></div></section></main>
+  <dialog id="songDialog"><form class="modal" id="songForm"><button class="close" type="button" data-close-dialog aria-label="סגירה">×</button><span class="eyebrow" id="dialogEyebrow">שיר חדש</span><h2 id="dialogTitle">הוספת שיר</h2><label>שם השיר<input id="title" required></label><label>אמן / מבצע<input id="artist" required></label><label>מילים<textarea id="lyrics" rows="6" placeholder="אפשר להשאיר ריק ולהשלים אחר כך"></textarea></label><label>פרומפט לתמונה<textarea id="prompt" rows="4" placeholder="תיאור באנגלית ליצירת התמונה"></textarea></label><div class="modal-actions"><button class="secondary" type="button" data-close-dialog>ביטול</button><button class="primary" id="saveButton" type="submit">שמירה</button></div></form></dialog>
+  <div id="toast"></div><script src="static/studio.js"></script>
+</body></html>
