@@ -223,16 +223,20 @@ function render() {
   $("#people").innerHTML = rows.length ? rows.map((person, index) => card(person, index + 1, memberships)).join("") : `<div class="empty"><b>לא נמצאו אנשים</b><br>אפשר לשנות את החיפוש או להוסיף אדם חדש לחבילה.</div>`;
   $$("nav button").forEach(b => b.onclick = () => { state.packageId = b.dataset.id; render() });
   $$(".compare input").forEach(input => input.oninput = () => input.parentElement.style.setProperty("--split", input.value + "%"));
-  $$(".card-action").forEach(button => button.onclick = () => {
-    const person = rows[+button.dataset.index];
-    if (button.dataset.action === "tmdb") return openTmdbProfile(person);
-    if (button.dataset.action === "generate-ai") return generateCardAiImage(person);
-    openCardAction(button.dataset.action, person);
-  });
+  bindCardActions(rows);
   if (state.highlightCardId) {
     const target = $$(".card").find(card => card.dataset.cardId === state.highlightCardId);
     if (target) requestAnimationFrame(() => { target.classList.add("person-highlight"); target.scrollIntoView({ behavior: "smooth", block: "center" }); state.highlightCardId = null; });
   }
+}
+function bindCardActions(rows, root = document) {
+  [...root.querySelectorAll(".card-action")].forEach(button => button.onclick = () => {
+    const person = rows[+button.dataset.index];
+    if (root !== document && button.dataset.action !== "tmdb") $("#addDialog").close();
+    if (button.dataset.action === "tmdb") return openTmdbProfile(person);
+    if (button.dataset.action === "generate-ai") return generateCardAiImage(person);
+    openCardAction(button.dataset.action, person);
+  });
 }
 function card(x, number, memberships) {
   const originalLabel = x.new ? "Wikipedia" : "מקור";
@@ -511,17 +515,25 @@ function existingPersonMatch(person, packageName) {
   const original = state.drafts.imageOverrides[id] || person.originalImageUrl || person.original || person.imageUrl;
   const geminiRemoved = state.drafts.removedGemini.includes(id);
   const gemini = state.drafts.geminiOverrides[id] || (geminiRemoved ? null : person.gemini);
-  return { name: person.name, packageName, original, gemini, new: person.new };
+  return {
+    ...person,
+    key: person.key || person.id,
+    packageName,
+    personId: personIdFor(person),
+    original,
+    gemini,
+    hasGemini: Boolean(gemini),
+    tmdbId: state.drafts.tmdbOverrides[id] || person.tmdbId || ""
+  };
 }
 function showExistingPeople() {
   const matches = findExistingPeople($("#personName").value);
   const panel = $("#existingPeople");
   panel.hidden = !matches.length;
   if (!matches.length) { panel.innerHTML = ""; return; }
-  panel.innerHTML = `<b>האדם כבר קיים בחבילה אחרת:</b><span class="existing-people-hint">הכרטיסים הקיימים מוצגים כאן, כך שאין צורך לצאת מהחלון.</span><div class="existing-person-cards">${matches.map(match => {
-    const image = match.gemini || match.original;
-    return `<article class="existing-person-card"><img src="${escapeHtml(image)}" alt="תמונה של ${escapeHtml(match.name)}" loading="lazy"><div><strong>${escapeHtml(match.name)}</strong><small>${escapeHtml(match.packageName)}</small><span>${match.new ? "חדש · טיוטה" : "קיים"}</span></div></article>`;
-  }).join("")}</div>`;
+  panel.innerHTML = `<b>האדם כבר קיים בחבילה אחרת:</b><span class="existing-people-hint">זהו אותו כרטיס שמוצג בדף הראשי.</span><div class="existing-person-cards">${matches.map((match, index) => card(match, index + 1, membershipIndex())).join("")}</div>`;
+  [...panel.querySelectorAll(".compare input")].forEach(input => input.oninput = () => input.parentElement.style.setProperty("--split", input.value + "%"));
+  bindCardActions(matches, panel);
 }
 let existingPeopleTimer;
 $("#personName").oninput = () => { clearTimeout(existingPeopleTimer); existingPeopleTimer = setTimeout(showExistingPeople, 350); };
