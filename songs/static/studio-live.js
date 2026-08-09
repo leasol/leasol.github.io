@@ -1,5 +1,5 @@
 const STORAGE_KEY='songsToPromptsStudioV1';
-const state={songs:[],artist:'',status:'all',query:'',editing:null,limit:48};
+const state={songs:[],artist:'',status:'missing',query:'',editing:null,limit:48};
 const $=s=>document.querySelector(s);const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(text){const el=$('#toast');el.textContent=text;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400)}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state.songs))}
