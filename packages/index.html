@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Package Studio for Quiz: Celebs Game">
+  <title>Packages Studio | Quiz: Celebs Game</title>
+  <link rel="stylesheet" href="style.css?v=2026.08.10.1">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Packages Studio">
+      <span class="mark">✦</span><span class="studio-title">Packages Studio</span><span class="studio-version">CELEBS</span>
+    </a>
+    <div class="top-actions">
+      <div class="top-stats" aria-label="Package statistics">
+        <div><b id="packageCount">—</b><span>packages</span></div>
+        <div><b id="entryCount">—</b><span>entries</span></div>
+        <div class="accent"><b id="draftCount">0</b><span>drafts</span></div>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json" hidden>
+      <button class="secondary" id="importButton" type="button">Import draft</button>
+      <button class="secondary" id="exportButton" type="button">Export draft</button>
+      <button class="primary" id="openAddPackage" type="button">＋ Package from data.json</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">CELEBS PACKAGE STUDIO</span>
+        <h1>Every package,<br><em>one studio.</em></h1>
+        <p>Browse and manage every Quiz: Celebs Game package except the Israel-only collection. Compare source and AI images, search the full catalog, and add a new package directly from its <code>data.json</code>.</p>
+      </div>
+      <div class="hero-note">
+        <span class="note-icon">↥</span>
+        <div><b>Drafts stay in your browser</b><span>Export them anytime to share or keep a backup.</span></div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Search and filters">
+      <label class="search"><span>⌕</span><input id="search" placeholder="Search a package or entry..." autocomplete="off"></label>
+      <div class="tabs" id="tabs" aria-label="Package type"></div>
+      <button class="secondary filter-button" id="aiOnly" type="button">Has AI image</button>
+    </section>
+
+    <section class="workspace">
+      <aside>
+        <div class="aside-heading"><h2>Packages</h2><span id="sidePackageCount"></span></div>
+        <nav id="packages" aria-label="Package list"></nav>
+      </aside>
+      <div class="content">
+        <div class="section-head">
+          <div><span id="packageTag">Loading data…</span><h2 id="packageTitle">Packages</h2></div>
+          <div class="section-actions">
+            <button class="text-button" id="addEntry" type="button">＋ Manual entry</button>
+            <button class="text-button danger" id="deleteDraftPackage" type="button" hidden>Delete draft</button>
+          </div>
+        </div>
+        <div class="results-row"><span id="resultCount"></span><span id="sourceStatus"></span></div>
+        <div id="entries" class="entries-grid"><div class="page-loader"><i></i><span>Reading the package library…</span></div></div>
+        <div class="more-wrap" id="moreWrap" hidden><button id="loadMore" class="secondary" type="button"></button></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="packageDialog">
+    <form method="dialog" class="modal" id="packageForm">
+      <button class="close" type="button" data-close="packageDialog" aria-label="Close">×</button>
+      <span class="eyebrow">NEW PACKAGE</span>
+      <h2>Add a package from data.json</h2>
+      <p>Choose the package’s <code>data.json</code> file. It will immediately appear as a local draft that you can export later.</p>
+      <label>Package name<input id="newPackageName" required placeholder="For example: TV Stars"></label>
+      <label>Package ID<input id="newPackageId" placeholder="tv_stars (optional)"></label>
+      <div class="two-columns">
+        <label>Category<select id="newPackageTab"><option value="celebrities">Celebrities</option><option value="characters">Characters</option><option value="special">Special</option><option value="posters">Posters</option><option value="logos">Logos</option><option value="emojis">Emoji</option><option value="riddles">Riddles</option><option value="facts">Facts</option><option value="other">Other</option></select></label>
+        <label>data.json file<input id="newPackageFile" type="file" accept="application/json,.json" required></label>
+      </div>
+      <details class="advanced-fields" open>
+        <summary>Image folders (needed for image cards)</summary>
+        <p>A standard ActorQuiz <code>data.json</code> does not contain its image folders. Enter paths relative to <code>actorquiz</code> to show source and AI images; leave both blank only for a text-only package.</p>
+        <label>Source folder<input id="newOriginalFolder" placeholder="actors-tv/original"></label>
+        <label>AI folder<input id="newGeminiFolder" placeholder="actors-tv/gemini"></label>
+      </details>
+      <div id="packageFileStatus" class="file-status" hidden></div>
+      <button class="primary full" id="savePackage" type="submit">Add package as draft</button>
+    </form>
+  </dialog>
+
+  <dialog id="entryDialog">
+    <form method="dialog" class="modal" id="entryForm">
+      <button class="close" type="button" data-close="entryDialog" aria-label="Close">×</button>
+      <span class="eyebrow">MANUAL ENTRY</span>
+      <h2>Add a manual entry</h2>
+      <p>This entry is saved in your local draft. Add it to one package at a time.</p>
+      <label>Entry name<input id="entryName" required placeholder="For example: Florence Pugh"></label>
+      <label>Package<select id="entryPackage" required></select></label>
+      <label>Source image URL<input id="entryOriginal" type="url" placeholder="https://… (optional)"></label>
+      <label>AI image URL<input id="entryGemini" type="url" placeholder="https://… (optional)"></label>
+      <label>TMDB ID<input id="entryTmdb" inputmode="numeric" placeholder="optional"></label>
+      <button class="primary full" type="submit">Save entry as draft</button>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js?v=2026.08.10.1"></script>
+</body>
+</html>
