@@ -59,6 +59,11 @@
         </div>
         <div class="results-row"><span id="resultCount"></span><span id="sourceStatus"></span></div>
         <div id="entries" class="entries-grid"><div class="page-loader"><i></i><span>Reading the package library…</span></div></div>
+        <div class="mobile-pager-nav" id="mobilePagerNav" hidden>
+          <button class="secondary" id="mobilePrev" type="button" aria-label="Previous entry">‹ Prev</button>
+          <span id="mobilePagerPosition"></span>
+          <button class="secondary" id="mobileNext" type="button" aria-label="Next entry">Next ›</button>
+        </div>
         <div class="more-wrap" id="moreWrap" hidden><button id="loadMore" class="secondary" type="button"></button></div>
       </div>
     </section>
@@ -95,6 +100,12 @@
       <p>This entry is saved in your local draft. Add it to one package at a time.</p>
       <label>Entry name<input id="entryName" required placeholder="For example: Florence Pugh"></label>
       <label>Package<select id="entryPackage" required></select></label>
+      <label>Details / facts
+        <div class="lyrics-field">
+          <textarea id="entryDetails" rows="4" placeholder="Optional facts shown on the card"></textarea>
+          <div id="entryDetailsLyrics" class="lyrics-overlay" hidden></div>
+        </div>
+      </label>
       <label>Source image URL<input id="entryOriginal" type="url" placeholder="https://… (optional)"></label>
       <label>AI image URL<input id="entryGemini" type="url" placeholder="https://… (optional)"></label>
       <label>TMDB ID<input id="entryTmdb" inputmode="numeric" placeholder="optional"></label>

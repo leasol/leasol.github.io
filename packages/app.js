@@ -2,6 +2,7 @@ const STORAGE_KEY = "celebsPackagesStudioDraftsV1";
 const ALL_PACKAGES_ID = "__all__";
 const PAGE_SIZE = 48;
 const RAW_ROOT = "https://raw.githubusercontent.com/LeaSolBok/LeaSolBok.github.io/main/actorquiz/";
+const MOBILE_QUERY = window.matchMedia("(max-width: 600px)");
 
 const TAB_LABELS = {
   celebrities: "Celebrities",
@@ -23,6 +24,7 @@ const state = {
   query: "",
   aiOnly: false,
   limit: PAGE_SIZE,
+  mobileIndex: 0,
   packageFileData: null,
   drafts: { version: 1, packages: [], additions: [] },
 };
@@ -174,6 +176,7 @@ function renderTabs() {
     const selected = getPackage();
     if (state.packageId !== ALL_PACKAGES_ID && selected?.tab !== state.tab) state.packageId = ALL_PACKAGES_ID;
     state.limit = PAGE_SIZE;
+    state.mobileIndex = 0;
     render();
   });
 }
@@ -187,6 +190,7 @@ function renderPackages() {
   $$("#packages button").forEach(button => button.onclick = () => {
     state.packageId = button.dataset.package;
     state.limit = PAGE_SIZE;
+    state.mobileIndex = 0;
     render();
   });
 }
@@ -234,7 +238,6 @@ function bindCards() {
 function renderContent() {
   const current = state.packageId === ALL_PACKAGES_ID ? null : getPackage();
   const rows = visibleRows();
-  const shown = rows.slice(0, state.limit);
   const packageName = current?.name || (state.tab === "all" ? "All packages" : labelForTab(state.tab));
   $("#packageTitle").textContent = packageName;
   $("#packageTag").textContent = current ? `${labelForTab(current.tab)}${current.custom ? " · local package" : " · app data"}` : state.tab === "all" ? "All Quiz: Celebs Game packages, excluding the Israel-only collection" : `All ${labelForTab(state.tab)} packages`;
@@ -242,9 +245,24 @@ function renderContent() {
   const generatedAt = cleanText(state.data?.generatedAt);
   $("#sourceStatus").textContent = generatedAt ? `Data updated: ${new Intl.DateTimeFormat("en-US").format(new Date(generatedAt))}` : "Drafts are stored in this browser";
   $("#deleteDraftPackage").hidden = !current?.custom;
-  $("#entries").innerHTML = shown.length ? shown.map(entryCard).join("") : `<div class="empty"><div><b>No entries found in this view</b><br><span>Try another search, filter, or package.</span></div></div>`;
-  $("#moreWrap").hidden = rows.length <= shown.length;
-  $("#loadMore").textContent = `Show ${Math.min(PAGE_SIZE, rows.length - shown.length).toLocaleString("en-US")} more entries`;
+
+  if (MOBILE_QUERY.matches) {
+    if (state.mobileIndex > rows.length - 1) state.mobileIndex = Math.max(0, rows.length - 1);
+    if (state.mobileIndex < 0) state.mobileIndex = 0;
+    const row = rows[state.mobileIndex];
+    $("#entries").innerHTML = row ? entryCard(row, state.mobileIndex) : `<div class="empty"><div><b>No entries found in this view</b><br><span>Try another search, filter, or package.</span></div></div>`;
+    $("#moreWrap").hidden = true;
+    $("#mobilePagerNav").hidden = rows.length === 0;
+    $("#mobilePagerPosition").textContent = rows.length ? `${state.mobileIndex + 1} / ${rows.length.toLocaleString("en-US")}` : "";
+    $("#mobilePrev").disabled = state.mobileIndex <= 0;
+    $("#mobileNext").disabled = state.mobileIndex >= rows.length - 1;
+  } else {
+    const shown = rows.slice(0, state.limit);
+    $("#entries").innerHTML = shown.length ? shown.map(entryCard).join("") : `<div class="empty"><div><b>No entries found in this view</b><br><span>Try another search, filter, or package.</span></div></div>`;
+    $("#moreWrap").hidden = rows.length <= shown.length;
+    $("#loadMore").textContent = `Show ${Math.min(PAGE_SIZE, rows.length - shown.length).toLocaleString("en-US")} more entries`;
+    $("#mobilePagerNav").hidden = true;
+  }
   bindCards();
 }
 
@@ -354,6 +372,12 @@ function openEntryDialog() {
   if (current) select.value = current.id;
   $("#entryForm").reset();
   if (current) select.value = current.id;
+  const referenceRow = MOBILE_QUERY.matches ? visibleRows()[state.mobileIndex] : null;
+  const lyricsBox = $("#entryDetailsLyrics");
+  lyricsBox.innerHTML = referenceRow
+    ? `<b>${escapeHtml(referenceRow.name)} · reference</b>${escapeHtml(referenceRow.details || "No facts recorded for this entry.")}`
+    : `<b>Reference</b>No card is currently open to reference.`;
+  lyricsBox.hidden = true;
   $("#entryDialog").showModal();
 }
 
@@ -410,10 +434,13 @@ function bindEvents() {
   let searchTimer;
   $("#search").oninput = event => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => { state.query = event.target.value.trim(); state.limit = PAGE_SIZE; render(); }, 140);
+    searchTimer = setTimeout(() => { state.query = event.target.value.trim(); state.limit = PAGE_SIZE; state.mobileIndex = 0; render(); }, 140);
   };
-  $("#aiOnly").onclick = () => { state.aiOnly = !state.aiOnly; state.limit = PAGE_SIZE; render(); };
+  $("#aiOnly").onclick = () => { state.aiOnly = !state.aiOnly; state.limit = PAGE_SIZE; state.mobileIndex = 0; render(); };
   $("#loadMore").onclick = () => { state.limit += PAGE_SIZE; renderContent(); };
+  $("#mobilePrev").onclick = () => { state.mobileIndex = Math.max(0, state.mobileIndex - 1); renderContent(); };
+  $("#mobileNext").onclick = () => { state.mobileIndex += 1; renderContent(); };
+  MOBILE_QUERY.addEventListener("change", () => { state.mobileIndex = 0; renderContent(); });
   $("#openAddPackage").onclick = openPackageDialog;
   $("#addEntry").onclick = openEntryDialog;
   $("#deleteDraftPackage").onclick = deleteCurrentDraftPackage;
@@ -422,6 +449,15 @@ function bindEvents() {
   $("#importFile").onchange = async event => { const file = event.target.files?.[0]; event.target.value = ""; await importDraftFile(file); };
   $("#newPackageFile").onchange = event => readPackageFile(event.target.files?.[0]);
   $$("[data-close]").forEach(button => button.onclick = () => document.getElementById(button.dataset.close).close());
+
+  const detailsField = $("#entryDetails");
+  const detailsLyrics = $("#entryDetailsLyrics");
+  detailsField.addEventListener("focus", () => { if (MOBILE_QUERY.matches) detailsLyrics.hidden = false; });
+  detailsField.addEventListener("blur", () => { detailsLyrics.hidden = true; });
+  // The reference panel is a plain, non-focusable div: touch-scrolling it never steals
+  // focus (or the keyboard) from the textarea underneath. Guard mousedown only, so
+  // native touch-scroll momentum on mobile is left untouched.
+  detailsLyrics.addEventListener("mousedown", event => event.preventDefault());
 
   $("#packageForm").onsubmit = event => {
     event.preventDefault();
@@ -439,6 +475,7 @@ function bindEvents() {
     state.packageId = id;
     state.tab = $("#newPackageTab").value;
     state.limit = PAGE_SIZE;
+    state.mobileIndex = 0;
     saveDrafts();
     $("#packageDialog").close();
     render();
@@ -458,10 +495,12 @@ function bindEvents() {
       original: cleanText($("#entryOriginal").value),
       gemini: cleanText($("#entryGemini").value),
       tmdbId: cleanText($("#entryTmdb").value),
+      details: cleanText($("#entryDetails").value),
       createdAt: new Date().toISOString(),
     }));
     state.packageId = packageId;
     state.limit = PAGE_SIZE;
+    state.mobileIndex = 0;
     saveDrafts();
     $("#entryDialog").close();
     render();
